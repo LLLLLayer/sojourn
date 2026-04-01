@@ -1,5 +1,6 @@
 export { Registry } from "./registry.js";
 export { ClaudeCodeParser } from "./parser/claude.js";
+export { OpenCodeParser } from "./parser/opencode.js";
 export { ClaudeCodeAnalyzer } from "./analyzer/claude-code.js";
 export { ClaudeAnalyzer } from "./analyzer/claude-api.js";
 export { ClaudeMdSink } from "./sink/claude-md.js";
@@ -40,6 +41,7 @@ import type { BaseParser } from "./parser/base.js";
 import type { BaseAnalyzer } from "./analyzer/base.js";
 import type { BaseSink } from "./sink/base.js";
 import { ClaudeCodeParser } from "./parser/claude.js";
+import { OpenCodeParser } from "./parser/opencode.js";
 import { ClaudeCodeAnalyzer } from "./analyzer/claude-code.js";
 import { ClaudeAnalyzer } from "./analyzer/claude-api.js";
 import { ClaudeMdSink } from "./sink/claude-md.js";
@@ -47,6 +49,7 @@ import { FileSink } from "./sink/file.js";
 
 export const parserRegistry = new Registry<BaseParser>();
 parserRegistry.register("claude-code", ClaudeCodeParser);
+parserRegistry.register("opencode", OpenCodeParser);
 
 export const analyzerRegistry = new Registry<BaseAnalyzer>();
 analyzerRegistry.register("claude-code", ClaudeCodeAnalyzer);
