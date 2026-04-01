@@ -1,15 +1,14 @@
 {
-  "name": "sojourn",
+  "name": "@sojourn/server",
   "version": "0.1.0",
   "type": "module",
-  "bin": {
-    "sojourn": "dist/index.js"
-  },
+  "main": "dist/app.js",
+  "types": "dist/app.d.ts",
   "dependencies": {
     "@sojourn/core": "workspace:*",
     "@sojourn/shared": "workspace:*",
-    "@sojourn/server": "workspace:*",
-    "commander": "^13.0.0"
+    "hono": "^4.7.0",
+    "@hono/node-server": "^1.14.0"
   },
   "scripts": {
     "build": "tsc",

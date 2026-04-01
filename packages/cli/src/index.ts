@@ -16,6 +16,7 @@ import {
 } from "./commands/hooks.js";
 import { configShow, configGet, configSet } from "./commands/config.js";
 import { repoList, repoBind, repoUnbind, repoSwitch } from "./commands/repo.js";
+import { serve } from "./commands/serve.js";
 import { doctor } from "./commands/doctor.js";
 
 const program = new Command();
@@ -137,6 +138,13 @@ program
   .description("Auto-analyze a session (called by hook)")
   .requiredOption("--session <sessionId>", "session ID to analyze")
   .action(hookAutoAnalyze);
+
+// Server
+program
+  .command("serve")
+  .description("Start the Sojourn Web GUI")
+  .option("-p, --port <port>", "port number", "7878")
+  .action(serve);
 
 // Maintenance
 program
