@@ -13,6 +13,12 @@ export {
   updatePendingStatus,
   discardPending,
 } from "./store.js";
+export {
+  installHook,
+  uninstallHook,
+  isHookInstalled,
+  autoAnalyze,
+} from "./hooks.js";
 export type { BaseParser } from "./parser/base.js";
 export type { BaseAnalyzer } from "./analyzer/base.js";
 export type { BaseSink } from "./sink/base.js";

@@ -8,6 +8,12 @@ import {
   pendingCommit,
   pendingDiscard,
 } from "./commands/pending.js";
+import {
+  hookInstall,
+  hookUninstall,
+  hookStatus,
+  hookAutoAnalyze,
+} from "./commands/hooks.js";
 
 const program = new Command();
 
@@ -34,6 +40,7 @@ program
   .option("--agent <agent>", "filter by agent type", "claude-code")
   .action(sessions);
 
+// Pending subcommands
 const pending = program
   .command("pending")
   .description("Manage pending distillation results");
@@ -59,5 +66,27 @@ pending
   .command("discard <id>")
   .description("Discard a pending result")
   .action(pendingDiscard);
+
+// Hook subcommands
+program
+  .command("install-hook")
+  .description("Install Sojourn hook into Claude Code settings")
+  .action(hookInstall);
+
+program
+  .command("uninstall-hook")
+  .description("Remove Sojourn hook from Claude Code settings")
+  .action(hookUninstall);
+
+program
+  .command("hook-status")
+  .description("Check if Sojourn hook is installed")
+  .action(hookStatus);
+
+program
+  .command("auto-analyze")
+  .description("Auto-analyze a session (called by hook)")
+  .requiredOption("--session <sessionId>", "session ID to analyze")
+  .action(hookAutoAnalyze);
 
 program.parse();
