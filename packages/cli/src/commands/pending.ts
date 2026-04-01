@@ -5,6 +5,8 @@ import {
   discardPending,
   ClaudeMdSink,
   FileSink,
+  GitRepoSink,
+  getActiveRepo,
 } from "@sojourn/core";
 
 export async function pendingList(): Promise<void> {
@@ -69,6 +71,14 @@ export async function pendingCommit(
       ? ("json" as const)
       : ("markdown" as const);
     const sink = new FileSink(outputPath, format);
+    await sink.write(item.resultData);
+  } else if (sinkName === "git-repo") {
+    const repo = await getActiveRepo();
+    if (!repo) {
+      console.error("No active repo. Run: sojourn repo bind <name> <url>");
+      process.exit(1);
+    }
+    const sink = new GitRepoSink({ repoUrl: repo.url, repoName: repo.name });
     await sink.write(item.resultData);
   }
 

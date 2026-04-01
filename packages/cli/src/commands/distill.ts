@@ -5,7 +5,9 @@ import {
   classifyMulti,
   ClaudeMdSink,
   FileSink,
+  GitRepoSink,
   savePending,
+  getActiveRepo,
 } from "@sojourn/core";
 import {
   isLinear,
@@ -84,6 +86,14 @@ export async function distill(
       const sink = new FileSink(outputPath, format);
       await sink.write(result);
       console.error(`Written to ${outputPath}`);
+    } else if (options.sink === "git-repo") {
+      const repo = await getActiveRepo();
+      if (!repo) {
+        console.error("No active repo. Run: sojourn repo bind <name> <url>");
+        process.exit(1);
+      }
+      const sink = new GitRepoSink({ repoUrl: repo.url, repoName: repo.name });
+      await sink.write(result);
     }
     return;
   }

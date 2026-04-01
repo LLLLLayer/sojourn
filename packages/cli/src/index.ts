@@ -15,6 +15,7 @@ import {
   hookAutoAnalyze,
 } from "./commands/hooks.js";
 import { configShow, configGet, configSet } from "./commands/config.js";
+import { repoList, repoBind, repoUnbind, repoSwitch } from "./commands/repo.js";
 import { doctor } from "./commands/doctor.js";
 
 const program = new Command();
@@ -89,6 +90,31 @@ config
   .command("set <key> <value>")
   .description("Set a config value")
   .action(configSet);
+
+// Repo subcommands
+const repo = program
+  .command("repo")
+  .description("Manage shared knowledge Git repositories");
+
+repo
+  .command("list")
+  .description("List bound repositories")
+  .action(repoList);
+
+repo
+  .command("bind <name> <url>")
+  .description("Bind a Git repository for team sharing")
+  .action(repoBind);
+
+repo
+  .command("unbind <name>")
+  .description("Unbind a repository")
+  .action(repoUnbind);
+
+repo
+  .command("switch <name>")
+  .description("Switch active repository")
+  .action(repoSwitch);
 
 // Hook commands
 program

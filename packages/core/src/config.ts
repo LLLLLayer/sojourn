@@ -15,6 +15,10 @@ const DEFAULT_CONFIG: SojournConfig = {
   sinks: {
     "claude-md": { path: "auto" },
   },
+  git: {
+    repos: [],
+    activeRepo: null,
+  },
   agents: {
     "claude-code": { logPath: join(homedir(), ".claude", "projects") },
   },
@@ -72,6 +76,47 @@ function setNestedValue(obj: any, path: string, value: unknown): void {
     current = current[keys[i]];
   }
   current[keys[keys.length - 1]] = value;
+}
+
+export async function bindRepo(name: string, url: string): Promise<void> {
+  const config = await loadConfig();
+  const existing = config.git.repos.find((r) => r.name === name);
+  if (existing) {
+    existing.url = url;
+  } else {
+    config.git.repos.push({ name, url });
+  }
+  if (!config.git.activeRepo) {
+    config.git.activeRepo = name;
+  }
+  await saveConfig(config);
+}
+
+export async function unbindRepo(name: string): Promise<void> {
+  const config = await loadConfig();
+  config.git.repos = config.git.repos.filter((r) => r.name !== name);
+  if (config.git.activeRepo === name) {
+    config.git.activeRepo = config.git.repos[0]?.name ?? null;
+  }
+  await saveConfig(config);
+}
+
+export async function switchRepo(name: string): Promise<void> {
+  const config = await loadConfig();
+  const repo = config.git.repos.find((r) => r.name === name);
+  if (!repo) {
+    throw new Error(
+      `Repo "${name}" not found. Available: ${config.git.repos.map((r) => r.name).join(", ")}`
+    );
+  }
+  config.git.activeRepo = name;
+  await saveConfig(config);
+}
+
+export async function getActiveRepo(): Promise<{ name: string; url: string } | null> {
+  const config = await loadConfig();
+  if (!config.git.activeRepo) return null;
+  return config.git.repos.find((r) => r.name === config.git.activeRepo) ?? null;
 }
 
 function tryParseValue(value: string): unknown {

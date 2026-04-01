@@ -25,7 +25,12 @@ export {
   getConfigValue,
   setConfigValue,
   getConfigPath,
+  bindRepo,
+  unbindRepo,
+  switchRepo,
+  getActiveRepo,
 } from "./config.js";
+export { GitRepoSink } from "./sink/git-repo.js";
 export type { BaseParser } from "./parser/base.js";
 export type { BaseAnalyzer } from "./analyzer/base.js";
 export type { BaseSink } from "./sink/base.js";
