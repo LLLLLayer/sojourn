@@ -1,0 +1,30 @@
+# Research
+research/
+
+# Internal docs
+docs/internal/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Node/Web
+node_modules/
+web/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Secrets
+.env
+.env.*
