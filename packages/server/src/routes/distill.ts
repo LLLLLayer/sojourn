@@ -4,6 +4,7 @@ import {
   analyzerRegistry,
   classify,
   classifyMulti,
+  detectFormat,
   savePending,
   listPending,
   getPending,
@@ -20,42 +21,52 @@ const distill = new Hono();
 
 // Trigger distillation
 distill.post("/", async (c) => {
-  const body = await c.req.json<{
-    sessionPaths: string[];
-    mode?: string;
-    analyzer?: string;
-  }>();
+  try {
+    const body = await c.req.json<{
+      sessionPaths: string[];
+      mode?: string;
+      analyzer?: string;
+    }>();
 
-  const parser = parserRegistry.get("claude-code");
-  const trees: MessageTree[] = [];
+    // Parse all sessions (auto-detect format)
+    const trees: MessageTree[] = [];
+    for (const path of body.sessionPaths) {
+      const format = await detectFormat(path);
+      const parserName = format === "unknown" ? "claude-code" : format;
+      const parser = parserRegistry.get(parserName);
+      trees.push(await parser.parse(path));
+    }
 
-  for (const path of body.sessionPaths) {
-    trees.push(await parser.parse(path));
+    let mode: Exclude<DistillMode, "auto">;
+    if (body.mode && body.mode !== "auto") {
+      mode = body.mode as Exclude<DistillMode, "auto">;
+    } else if (trees.length > 1) {
+      mode = classifyMulti(trees);
+    } else {
+      mode = classify(trees[0]);
+    }
+
+    const analyzerName = body.analyzer ?? "claude-code";
+    const analyzer = analyzerRegistry.get(analyzerName);
+
+    const result =
+      trees.length > 1
+        ? await analyzer.analyzeMulti(trees, mode)
+        : await analyzer.analyze(trees[0], mode);
+
+    const id = await savePending(
+      trees.map((t) => t.sessionId),
+      result
+    );
+
+    return c.json({ id, result });
+  } catch (err: any) {
+    console.error("Distill error:", err.message);
+    return c.json(
+      { error: err.message ?? "Distillation failed" },
+      500
+    );
   }
-
-  let mode: Exclude<DistillMode, "auto">;
-  if (body.mode && body.mode !== "auto") {
-    mode = body.mode as Exclude<DistillMode, "auto">;
-  } else if (trees.length > 1) {
-    mode = classifyMulti(trees);
-  } else {
-    mode = classify(trees[0]);
-  }
-
-  const analyzerName = body.analyzer ?? "claude-code";
-  const analyzer = analyzerRegistry.get(analyzerName);
-
-  const result =
-    trees.length > 1
-      ? await analyzer.analyzeMulti(trees, mode)
-      : await analyzer.analyze(trees[0], mode);
-
-  const id = await savePending(
-    trees.map((t) => t.sessionId),
-    result
-  );
-
-  return c.json({ id, result });
 });
 
 // List pending
@@ -86,33 +97,40 @@ distill.put("/:id", async (c) => {
 
 // Commit a distill result to a sink
 distill.post("/:id/commit", async (c) => {
-  const id = c.req.param("id");
-  const body = await c.req.json<{
-    sink: string;
-    outputPath?: string;
-  }>();
+  try {
+    const id = c.req.param("id");
+    const body = await c.req.json<{
+      sink: string;
+      outputPath?: string;
+    }>();
 
-  const item = await getPending(id);
-  if (!item) return c.json({ error: "Not found" }, 404);
+    const item = await getPending(id);
+    if (!item) return c.json({ error: "Not found" }, 404);
 
-  const sinkName = body.sink ?? "claude-md";
-  const outputPath = body.outputPath ?? "./CLAUDE.md";
+    const sinkName = body.sink ?? "claude-md";
+    const outputPath = body.outputPath ?? "./CLAUDE.md";
 
-  if (sinkName === "claude-md") {
-    await new ClaudeMdSink(outputPath).write(item.resultData);
-  } else if (sinkName === "file") {
-    const format = outputPath.endsWith(".json") ? "json" as const : "markdown" as const;
-    await new FileSink(outputPath, format).write(item.resultData);
-  } else if (sinkName === "git-repo") {
-    const repo = await getActiveRepo();
-    if (!repo) return c.json({ error: "No active repo" }, 400);
-    await new GitRepoSink({ repoUrl: repo.url, repoName: repo.name }).write(
-      item.resultData
-    );
+    if (sinkName === "claude-md") {
+      await new ClaudeMdSink(outputPath).write(item.resultData);
+    } else if (sinkName === "file") {
+      const format = outputPath.endsWith(".json")
+        ? ("json" as const)
+        : ("markdown" as const);
+      await new FileSink(outputPath, format).write(item.resultData);
+    } else if (sinkName === "git-repo") {
+      const repo = await getActiveRepo();
+      if (!repo) return c.json({ error: "No active repo" }, 400);
+      await new GitRepoSink({
+        repoUrl: repo.url,
+        repoName: repo.name,
+      }).write(item.resultData);
+    }
+
+    await updatePendingStatus(id, "committed", sinkName);
+    return c.json({ ok: true, committedTo: sinkName });
+  } catch (err: any) {
+    return c.json({ error: err.message ?? "Commit failed" }, 500);
   }
-
-  await updatePendingStatus(id, "committed", sinkName);
-  return c.json({ ok: true, committedTo: sinkName });
 });
 
 // Discard

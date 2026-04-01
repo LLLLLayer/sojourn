@@ -46,7 +46,11 @@ export function SessionList({
         body: JSON.stringify({ sessionPaths: [...selected] }),
       });
       const data = await res.json();
-      onDistilled(data.result);
+      if (data.error) {
+        alert("Distill failed: " + data.error);
+      } else {
+        onDistilled(data.result);
+      }
     } catch (e) {
       alert("Distill failed: " + (e as Error).message);
     } finally {
