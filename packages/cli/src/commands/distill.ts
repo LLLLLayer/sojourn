@@ -3,11 +3,12 @@ import {
   analyzerRegistry,
   classify,
   classifyMulti,
+  ClaudeMdSink,
+  FileSink,
+  savePending,
 } from "@sojourn/core";
 import {
   isLinear,
-  getMainChain,
-  getBranches,
   type MessageTree,
   type ThoughtTreeResult,
   type SOPResult,
@@ -17,7 +18,10 @@ import {
 interface DistillOptions {
   mode?: string;
   analyzer?: string;
+  sink?: string;
+  output?: string;
   json?: boolean;
+  save?: boolean;
 }
 
 export async function distill(
@@ -59,7 +63,32 @@ export async function distill(
       ? await analyzer.analyzeMulti(trees, mode)
       : await analyzer.analyze(trees[0], mode);
 
-  // Output
+  // Save to pending if requested
+  if (options.save) {
+    const id = await savePending(
+      trees.map((t) => t.sessionId),
+      result
+    );
+    console.error(`Saved to pending: ${id}`);
+  }
+
+  // Write to sink if specified
+  if (options.sink) {
+    const outputPath = options.output ?? "./CLAUDE.md";
+    if (options.sink === "claude-md") {
+      const sink = new ClaudeMdSink(outputPath);
+      await sink.write(result);
+      console.error(`Written to ${outputPath}`);
+    } else if (options.sink === "file") {
+      const format = outputPath.endsWith(".json") ? "json" as const : "markdown" as const;
+      const sink = new FileSink(outputPath, format);
+      await sink.write(result);
+      console.error(`Written to ${outputPath}`);
+    }
+    return;
+  }
+
+  // Output to stdout
   if (options.json) {
     console.log(JSON.stringify(result, null, 2));
     return;

@@ -52,4 +52,5 @@ Analyzer 可插拔：`claude-code`（默认，调用本地 Claude Code CLI）、
 - `docs/internal/proposal.md` — 项目书：目标、功能、用户流程、风险、竞品
 - `docs/internal/architecture.md` — 技术架构：选型、结构、数据流、API、配置
 - `docs/internal/thought-tree-spec.md` — 思维树规范：节点类型、边关系、数据模型
+- `docs/internal/development-plan.md` — 开发计划：4 个阶段的任务清单
 - `research/CLAUDE.md` — 竞品分析与研究笔记（10 个参考项目）
