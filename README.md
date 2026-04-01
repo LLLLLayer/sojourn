@@ -15,9 +15,8 @@ A team tool that distills reusable knowledge from AI coding conversations.
 ## Usage
 
 ```bash
-pip install sojourn
-sojourn serve                      # Launch Web GUI
-sojourn distill <session-id>       # CLI distillation
+npx sojourn serve                  # Launch Web GUI
+npx sojourn distill <session-id>   # CLI distillation
 ```
 
 ## License

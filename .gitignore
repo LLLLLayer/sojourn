@@ -4,18 +4,10 @@ research/
 # Internal docs
 docs/internal/
 
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-.venv/
-venv/
-
-# Node/Web
+# Node/TypeScript
 node_modules/
-web/dist/
+dist/
+*.tsbuildinfo
 
 # IDE
 .idea/

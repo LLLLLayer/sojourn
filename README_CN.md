@@ -15,9 +15,8 @@
 ## 使用
 
 ```bash
-pip install sojourn
-sojourn serve                      # 启动 Web GUI
-sojourn distill <session-id>       # CLI 直接提炼
+npx sojourn serve                  # 启动 Web GUI
+npx sojourn distill <session-id>   # CLI 直接提炼
 ```
 
 ## 许可证
