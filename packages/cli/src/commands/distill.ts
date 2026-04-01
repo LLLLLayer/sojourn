@@ -6,6 +6,7 @@ import {
   ClaudeMdSink,
   FileSink,
   GitRepoSink,
+  MemorySink,
   savePending,
   getActiveRepo,
 } from "@sojourn/core";
@@ -94,6 +95,10 @@ export async function distill(
       }
       const sink = new GitRepoSink({ repoUrl: repo.url, repoName: repo.name });
       await sink.write(result);
+    } else if (options.sink === "memory") {
+      const sink = new MemorySink();
+      await sink.write(result);
+      console.error("Written to Claude Code memory");
     }
     return;
   }

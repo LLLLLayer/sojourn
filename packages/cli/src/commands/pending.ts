@@ -6,6 +6,7 @@ import {
   ClaudeMdSink,
   FileSink,
   GitRepoSink,
+  MemorySink,
   getActiveRepo,
 } from "@sojourn/core";
 
@@ -80,6 +81,8 @@ export async function pendingCommit(
     }
     const sink = new GitRepoSink({ repoUrl: repo.url, repoName: repo.name });
     await sink.write(item.resultData);
+  } else if (sinkName === "memory") {
+    await new MemorySink().write(item.resultData);
   }
 
   await updatePendingStatus(id, "committed", sinkName);

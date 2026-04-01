@@ -32,6 +32,7 @@ export {
   getActiveRepo,
 } from "./config.js";
 export { GitRepoSink } from "./sink/git-repo.js";
+export { MemorySink } from "./sink/memory.js";
 export type { BaseParser } from "./parser/base.js";
 export type { BaseAnalyzer } from "./analyzer/base.js";
 export type { BaseSink } from "./sink/base.js";
