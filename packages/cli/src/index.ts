@@ -14,6 +14,8 @@ import {
   hookStatus,
   hookAutoAnalyze,
 } from "./commands/hooks.js";
+import { configShow, configGet, configSet } from "./commands/config.js";
+import { doctor } from "./commands/doctor.js";
 
 const program = new Command();
 
@@ -22,6 +24,7 @@ program
   .description("Distill reusable knowledge from AI coding conversations")
   .version("0.1.0");
 
+// Core commands
 program
   .command("distill")
   .description("Distill knowledge from one or more sessions")
@@ -67,7 +70,27 @@ pending
   .description("Discard a pending result")
   .action(pendingDiscard);
 
-// Hook subcommands
+// Config subcommands
+const config = program
+  .command("config")
+  .description("Manage Sojourn configuration");
+
+config
+  .command("show")
+  .description("Show full configuration")
+  .action(configShow);
+
+config
+  .command("get <key>")
+  .description("Get a config value (dot notation: analyzers.claude-code.model)")
+  .action(configGet);
+
+config
+  .command("set <key> <value>")
+  .description("Set a config value")
+  .action(configSet);
+
+// Hook commands
 program
   .command("install-hook")
   .description("Install Sojourn hook into Claude Code settings")
@@ -88,5 +111,11 @@ program
   .description("Auto-analyze a session (called by hook)")
   .requiredOption("--session <sessionId>", "session ID to analyze")
   .action(hookAutoAnalyze);
+
+// Maintenance
+program
+  .command("doctor")
+  .description("Check environment, configuration, and connectivity")
+  .action(doctor);
 
 program.parse();

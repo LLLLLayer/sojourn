@@ -19,6 +19,13 @@ export {
   isHookInstalled,
   autoAnalyze,
 } from "./hooks.js";
+export {
+  loadConfig,
+  saveConfig,
+  getConfigValue,
+  setConfigValue,
+  getConfigPath,
+} from "./config.js";
 export type { BaseParser } from "./parser/base.js";
 export type { BaseAnalyzer } from "./analyzer/base.js";
 export type { BaseSink } from "./sink/base.js";
