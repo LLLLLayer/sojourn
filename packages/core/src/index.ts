@@ -5,7 +5,8 @@ export { ClaudeCodeAnalyzer } from "./analyzer/claude-code.js";
 export { ClaudeAnalyzer } from "./analyzer/claude-api.js";
 export { ClaudeMdSink } from "./sink/claude-md.js";
 export { FileSink } from "./sink/file.js";
-export { classify, classifyMulti } from "./distiller/classifier.js";
+export { classify, classifyMulti, classifyWithLLM } from "./distiller/classifier.js";
+export { detectFormat } from "./parser/detect.js";
 export { renderPrompt } from "./prompts/loader.js";
 export {
   savePending,

@@ -3,6 +3,7 @@ import {
   analyzerRegistry,
   classify,
   classifyMulti,
+  detectFormat,
   ClaudeMdSink,
   FileSink,
   GitRepoSink,
@@ -31,12 +32,13 @@ export async function distill(
   sessionPaths: string[],
   options: DistillOptions
 ): Promise<void> {
-  const parser = parserRegistry.get("claude-code");
-
-  // Parse all sessions
+  // Parse all sessions (auto-detect format)
   const trees: MessageTree[] = [];
   for (const path of sessionPaths) {
-    console.error(`Parsing: ${path}`);
+    const format = await detectFormat(path);
+    const parserName = format === "unknown" ? "claude-code" : format;
+    const parser = parserRegistry.get(parserName);
+    console.error(`Parsing: ${path} (${parserName})`);
     const tree = await parser.parse(path);
     const linear = isLinear(tree);
     console.error(
