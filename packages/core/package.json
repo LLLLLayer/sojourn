@@ -1,0 +1,15 @@
+{
+  "name": "@sojourn/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.81.0",
+    "@sojourn/shared": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc && cp src/prompts/*.md dist/prompts/",
+    "dev": "tsc --watch"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "sojourn",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "sojourn": "dist/index.js"
+  },
+  "dependencies": {
+    "@sojourn/core": "workspace:*",
+    "@sojourn/shared": "workspace:*",
+    "commander": "^13.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  }
+}
