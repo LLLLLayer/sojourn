@@ -10,63 +10,153 @@ export function SOPView({ result }: { result: any }) {
   const steps: Step[] = result.steps ?? [];
 
   return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
-        {result.title}
-      </h2>
-      {result.summary && (
-        <p style={{ color: "#71717a", fontSize: 13, marginBottom: 20 }}>
-          {result.summary}
-        </p>
-      )}
+    <div className="animate-fade-up">
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <span style={{
+            fontSize: 10,
+            fontFamily: "var(--font-mono)",
+            color: "var(--accent-sage-dim)",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+          }}>
+            Standard Operating Procedure
+          </span>
+          <span style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
+        </div>
+        <h2 style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 24,
+          fontWeight: 400,
+          color: "var(--text-primary)",
+          letterSpacing: "-0.02em",
+          lineHeight: 1.3,
+        }}>
+          {result.title}
+        </h2>
+        {result.summary && (
+          <p style={{
+            fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            color: "var(--text-muted)",
+            fontSize: 14,
+            marginTop: 8,
+          }}>
+            {result.summary}
+          </p>
+        )}
+      </div>
 
-      <ol style={{ listStyle: "none", padding: 0, counterReset: "step" }}>
+      <ol style={{ listStyle: "none", padding: 0 }}>
         {steps.map((step, i) => (
           <li
             key={i}
+            className={`animate-fade-up stagger-${Math.min(i + 1, 8)}`}
             style={{
-              padding: "12px 16px",
-              borderRadius: 6,
-              background: "#1e1e21",
-              border: "1px solid #27272a",
-              marginBottom: 8,
-              fontSize: 13,
+              display: "grid",
+              gridTemplateColumns: "40px 1fr",
+              gap: 16,
+              marginBottom: 2,
+              padding: "14px 16px",
+              borderRadius: "var(--radius-sm)",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-subtle)",
+              transition: "border-color 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
             }}
           >
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <span
-                style={{
-                  background: "#2563eb",
-                  color: "#fff",
-                  borderRadius: "50%",
-                  width: 22,
-                  height: 22,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  flexShrink: 0,
-                  marginTop: 1,
-                }}
-              >
-                {i + 1}
+            {/* Step Number */}
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              paddingTop: 2,
+            }}>
+              <span style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 20,
+                fontWeight: 300,
+                color: "var(--accent-amber-dim)",
+                lineHeight: 1,
+              }}>
+                {String(i + 1).padStart(2, "0")}
               </span>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: "#e5e5e5", lineHeight: 1.5 }}>
-                  {step.description}
-                </div>
-                {step.precondition && (
-                  <div style={{ color: "#eab308", fontSize: 12, marginTop: 6 }}>
-                    前置条件: {step.precondition}
-                  </div>
-                )}
-                {step.failureBranch && (
-                  <div style={{ color: "#f87171", fontSize: 12, marginTop: 4 }}>
-                    失败处理: {step.failureBranch}
-                  </div>
-                )}
+              {i < steps.length - 1 && (
+                <span style={{
+                  width: 1,
+                  flex: 1,
+                  marginTop: 8,
+                  background: "var(--border-subtle)",
+                }} />
+              )}
+            </div>
+
+            {/* Step Content */}
+            <div>
+              <div style={{
+                color: "var(--text-primary)",
+                fontSize: 13,
+                lineHeight: 1.6,
+                fontFamily: "var(--font-mono)",
+                fontWeight: 300,
+              }}>
+                {step.description}
               </div>
+
+              {step.precondition && (
+                <div style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  marginTop: 10,
+                  padding: "8px 10px",
+                  borderRadius: "var(--radius-sm)",
+                  background: "#fdf6e8",
+                  border: "1px dashed var(--border-warm)",
+                }}>
+                  <span style={{ color: "var(--accent-ochre)", fontSize: 11, flexShrink: 0, fontWeight: 500 }}>
+                    PRE
+                  </span>
+                  <span style={{
+                    color: "var(--accent-ochre)",
+                    fontSize: 11,
+                    fontFamily: "var(--font-display)",
+                    fontStyle: "italic",
+                  }}>
+                    {step.precondition}
+                  </span>
+                </div>
+              )}
+
+              {step.failureBranch && (
+                <div style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  marginTop: 6,
+                  padding: "8px 10px",
+                  borderRadius: "var(--radius-sm)",
+                  background: "#fdf0ed",
+                  border: "1px dashed var(--accent-terracotta-dim)",
+                }}>
+                  <span style={{ color: "var(--accent-terracotta)", fontSize: 11, flexShrink: 0, fontWeight: 500 }}>
+                    FAIL
+                  </span>
+                  <span style={{
+                    color: "var(--accent-terracotta)",
+                    fontSize: 11,
+                    fontFamily: "var(--font-display)",
+                    fontStyle: "italic",
+                  }}>
+                    {step.failureBranch}
+                  </span>
+                </div>
+              )}
             </div>
           </li>
         ))}

@@ -8,7 +8,11 @@ interface Session {
   sizeKB: number;
 }
 
-export function SessionList({ onDistilled }: { onDistilled: (result: any) => void }) {
+export function SessionList({
+  onDistilled,
+}: {
+  onDistilled: (result: any) => void;
+}) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -50,76 +54,139 @@ export function SessionList({ onDistilled }: { onDistilled: (result: any) => voi
     }
   };
 
-  // Group by project
   const grouped = new Map<string, Session[]>();
   for (const s of sessions) {
     if (!grouped.has(s.project)) grouped.set(s.project, []);
     grouped.get(s.project)!.push(s);
   }
 
-  if (loading) return <p style={{ color: "#71717a" }}>Loading sessions...</p>;
+  if (loading) {
+    return (
+      <div className="animate-fade-in" style={{ color: "var(--text-muted)", fontStyle: "italic", fontFamily: "var(--font-display)" }}>
+        Loading sessions...
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <span style={{ color: "#71717a", fontSize: 13 }}>
-          {sessions.length} sessions · {selected.size} selected
-        </span>
+    <div className="animate-fade-up">
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32 }}>
+        <div>
+          <h2
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 28,
+              fontWeight: 400,
+              color: "var(--text-primary)",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Sessions
+          </h2>
+          <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4, fontFamily: "var(--font-mono)" }}>
+            {sessions.length} conversations · {selected.size} selected
+          </p>
+        </div>
+
         <button
           onClick={distill}
           disabled={selected.size === 0 || distilling}
           style={{
-            background: selected.size > 0 ? "#2563eb" : "#27272a",
-            color: selected.size > 0 ? "#fff" : "#52525b",
+            background: selected.size > 0 ? "var(--accent-amber)" : "var(--bg-elevated)",
+            color: selected.size > 0 ? "var(--bg-deep)" : "var(--text-muted)",
             border: "none",
-            borderRadius: 6,
-            padding: "8px 20px",
+            borderRadius: "var(--radius-sm)",
+            padding: "10px 28px",
             cursor: selected.size > 0 ? "pointer" : "default",
-            fontSize: 13,
+            fontSize: 12,
+            fontFamily: "var(--font-mono)",
             fontWeight: 500,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            transition: "all 0.3s ease",
+            opacity: distilling ? 0.6 : 1,
           }}
         >
           {distilling ? "Distilling..." : "Distill"}
         </button>
       </div>
 
-      {[...grouped.entries()].map(([project, items]) => (
-        <div key={project} style={{ marginBottom: 20 }}>
-          <h3 style={{ fontSize: 13, color: "#71717a", marginBottom: 8, fontWeight: 400 }}>
+      {/* Session Groups */}
+      {[...grouped.entries()].map(([project, items], gi) => (
+        <div
+          key={project}
+          className={`animate-fade-up stagger-${Math.min(gi + 1, 8)}`}
+          style={{ marginBottom: 28 }}
+        >
+          <h3
+            style={{
+              fontSize: 11,
+              color: "var(--text-muted)",
+              marginBottom: 8,
+              fontWeight: 400,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              fontFamily: "var(--font-mono)",
+              borderBottom: "1px solid var(--border-subtle)",
+              paddingBottom: 6,
+            }}
+          >
             {project}
           </h3>
-          {items.map((s) => (
-            <label
-              key={s.path}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "8px 12px",
-                borderRadius: 6,
-                background: selected.has(s.path) ? "#1e293b" : "transparent",
-                cursor: "pointer",
-                fontSize: 13,
-                marginBottom: 2,
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={selected.has(s.path)}
-                onChange={() => toggle(s.path)}
-                style={{ accentColor: "#2563eb" }}
-              />
-              <span style={{ color: "#a1a1aa", width: 130, flexShrink: 0 }}>
-                {s.modified.slice(0, 16).replace("T", " ")}
-              </span>
-              <span style={{ color: "#71717a", width: 50, flexShrink: 0, textAlign: "right" }}>
-                {s.sizeKB}KB
-              </span>
-              <span style={{ color: "#d4d4d8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {s.sessionId}
-              </span>
-            </label>
-          ))}
+          {items.map((s) => {
+            const isSelected = selected.has(s.path);
+            return (
+              <label
+                key={s.path}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "20px 140px 55px 1fr",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "9px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  background: isSelected ? "var(--bg-selected)" : "transparent",
+                  borderLeft: isSelected ? "2px solid var(--accent-amber-dim)" : "2px solid transparent",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  marginBottom: 1,
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) (e.currentTarget as HTMLElement).style.background = "transparent";
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggle(s.path)}
+                />
+                <span style={{ color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                  {s.modified.slice(0, 16).replace("T", " ")}
+                </span>
+                <span style={{ color: "var(--text-muted)", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  {s.sizeKB}KB
+                </span>
+                <span
+                  style={{
+                    color: isSelected ? "var(--text-warm)" : "var(--text-primary)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    opacity: 0.8,
+                  }}
+                >
+                  {s.sessionId}
+                </span>
+              </label>
+            );
+          })}
         </div>
       ))}
     </div>

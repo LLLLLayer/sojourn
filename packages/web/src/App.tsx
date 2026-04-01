@@ -10,59 +10,165 @@ export function App() {
   const [resultData, setResultData] = useState<any>(null);
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto", padding: "24px 16px" }}>
-      <header style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 32 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600 }}>Sojourn</h1>
-        <nav style={{ display: "flex", gap: 12 }}>
-          <NavButton active={page === "sessions"} onClick={() => setPage("sessions")}>
-            Sessions
-          </NavButton>
-          <NavButton active={page === "pending"} onClick={() => setPage("pending")}>
-            Pending
-          </NavButton>
-        </nav>
-      </header>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      {/* Sidebar */}
+      <aside
+        style={{
+          width: 220,
+          borderRight: "1px solid var(--border-subtle)",
+          padding: "32px 0",
+          flexShrink: 0,
+          background: "var(--bg-elevated)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div
+          className="animate-fade-in"
+          style={{ padding: "0 24px", marginBottom: 48 }}
+        >
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 22,
+              fontWeight: 500,
+              color: "var(--text-warm)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Sojourn
+          </h1>
+          <p
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 11,
+              color: "var(--text-muted)",
+              fontStyle: "italic",
+              marginTop: 4,
+              letterSpacing: "0.04em",
+            }}
+          >
+            knowledge distillation
+          </p>
+        </div>
 
-      {page === "sessions" && (
-        <SessionList
-          onDistilled={(result) => {
-            setResultData(result);
-            setPage("result");
+        <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <NavItem
+            active={page === "sessions"}
+            onClick={() => setPage("sessions")}
+            label="Sessions"
+            shortcut="S"
+            delay={1}
+          />
+          <NavItem
+            active={page === "pending"}
+            onClick={() => setPage("pending")}
+            label="Pending"
+            shortcut="P"
+            delay={2}
+          />
+        </nav>
+
+        <div style={{ flex: 1 }} />
+
+        <div
+          className="animate-fade-in"
+          style={{
+            padding: "0 24px",
+            fontSize: 10,
+            color: "var(--text-muted)",
+            fontFamily: "var(--font-mono)",
           }}
-        />
-      )}
-      {page === "pending" && <PendingList />}
-      {page === "result" && resultData && (
-        <ResultView result={resultData} onBack={() => setPage("sessions")} />
-      )}
+        >
+          v0.1.0
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main
+        style={{
+          flex: 1,
+          padding: "40px 48px",
+          maxWidth: 880,
+          overflow: "auto",
+        }}
+      >
+        {page === "sessions" && (
+          <SessionList
+            onDistilled={(result) => {
+              setResultData(result);
+              setPage("result");
+            }}
+          />
+        )}
+        {page === "pending" && <PendingList />}
+        {page === "result" && resultData && (
+          <ResultView
+            result={resultData}
+            onBack={() => setPage("sessions")}
+          />
+        )}
+      </main>
     </div>
   );
 }
 
-function NavButton({
+function NavItem({
   active,
   onClick,
-  children,
+  label,
+  shortcut,
+  delay,
 }: {
   active: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  label: string;
+  shortcut: string;
+  delay: number;
 }) {
   return (
     <button
       onClick={onClick}
+      className={`animate-slide-in stagger-${delay}`}
       style={{
-        background: active ? "#2563eb" : "transparent",
-        color: active ? "#fff" : "#a1a1aa",
-        border: "1px solid",
-        borderColor: active ? "#2563eb" : "#27272a",
-        borderRadius: 6,
-        padding: "6px 14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "8px 24px",
+        background: active ? "var(--bg-selected)" : "transparent",
+        color: active ? "var(--text-warm)" : "var(--text-secondary)",
+        border: "none",
+        borderLeft: active
+          ? "2px solid var(--accent-amber)"
+          : "2px solid transparent",
         cursor: "pointer",
         fontSize: 13,
+        fontFamily: "var(--font-mono)",
+        fontWeight: active ? 400 : 300,
+        letterSpacing: "0.02em",
+        transition: "all 0.2s ease",
+        textAlign: "left",
+      }}
+      onMouseEnter={(e) => {
+        if (!active)
+          (e.target as HTMLElement).style.background = "var(--bg-hover)";
+      }}
+      onMouseLeave={(e) => {
+        if (!active)
+          (e.target as HTMLElement).style.background = "transparent";
       }}
     >
-      {children}
+      {label}
+      <span
+        style={{
+          fontSize: 10,
+          color: "var(--text-muted)",
+          fontWeight: 300,
+          opacity: 0.6,
+        }}
+      >
+        {shortcut}
+      </span>
     </button>
   );
 }
