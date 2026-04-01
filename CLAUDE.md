@@ -6,10 +6,6 @@
 
 Sojourn 是一个从 AI 编码对话中提炼可复用知识的团队工具。
 
-## 项目状态
-
-MVP 开发中。核心管线（JSONL 解析 → 消息树构建 → AI 分析 → 结构化输出）已跑通。
-
 ## 开发
 
 ```bash
@@ -20,37 +16,50 @@ pnpm build          # 构建所有包
 ## 使用
 
 ```bash
-# 列出所有会话
+# 列出会话
 node packages/cli/dist/index.js sessions
 
-# 提炼知识（默认自动判定模式，使用 Claude Code CLI 分析）
+# 提炼（默认 claude-code analyzer，自动判定模式）
 node packages/cli/dist/index.js distill <session.jsonl>
-
-# 指定模式
 node packages/cli/dist/index.js distill -m thought_tree <session.jsonl>
 node packages/cli/dist/index.js distill -m sop <session.jsonl>
-
-# JSON 输出
 node packages/cli/dist/index.js distill --json <session.jsonl>
 
-# 使用 Anthropic API（需要 ANTHROPIC_API_KEY）
-node packages/cli/dist/index.js distill -a claude-api <session.jsonl>
+# 输出到 sink
+node packages/cli/dist/index.js distill -s claude-md -o ./CLAUDE.md <session.jsonl>
+node packages/cli/dist/index.js distill -s memory <session.jsonl>
+node packages/cli/dist/index.js distill -s git-repo <session.jsonl>
+
+# 暂存管理
+node packages/cli/dist/index.js pending list
+node packages/cli/dist/index.js pending commit <id> -s claude-md
+
+# Git 仓库管理
+node packages/cli/dist/index.js repo bind <name> <url>
+node packages/cli/dist/index.js repo list
+
+# Hook 管理
+node packages/cli/dist/index.js install-hook
+node packages/cli/dist/index.js doctor
+
+# Web GUI
+node packages/cli/dist/index.js serve
 ```
 
 ## 架构
 
-TypeScript monorepo（pnpm workspace），三层可插拔管线：
+TypeScript monorepo（pnpm workspace），5 个包：
 
-- **`packages/shared`** — 共享类型（Message, MessageTree, ThoughtTreeResult, SOPResult 等）
-- **`packages/core`** — 核心逻辑：Parser（JSONL 解析）、Analyzer（AI 分析）、Distiller（分类）、Prompts（模板）、Registry（注册表）
-- **`packages/cli`** — CLI 入口：`distill`、`sessions` 命令
-
-Analyzer 可插拔：`claude-code`（默认，调用本地 Claude Code CLI）、`claude-api`（Anthropic API）。
+- **`packages/shared`** — 共享类型（MessageTree, 8 种思维树节点类型, SOP, Workflow）
+- **`packages/core`** — Parser（Claude Code JSONL, opencode SQLite）、Analyzer（Claude Code CLI, API）、Distiller、Prompts、Sink（claude-md, file, git-repo, memory）、Store、Hooks、Config
+- **`packages/cli`** — CLI 命令
+- **`packages/server`** — Hono API 服务
+- **`packages/web`** — React 前端
 
 ## 文档
 
-- `docs/internal/proposal.md` — 项目书：目标、功能、用户流程、风险、竞品
-- `docs/internal/architecture.md` — 技术架构：选型、结构、数据流、API、配置
-- `docs/internal/thought-tree-spec.md` — 思维树规范：节点类型、边关系、数据模型
-- `docs/internal/development-plan.md` — 开发计划：4 个阶段的任务清单
-- `research/CLAUDE.md` — 竞品分析与研究笔记（10 个参考项目）
+- `docs/internal/proposal.md` — 项目书
+- `docs/internal/architecture.md` — 技术架构
+- `docs/internal/thought-tree-spec.md` — 思维树规范
+- `docs/internal/development-plan.md` — 开发计划
+- `research/CLAUDE.md` — 竞品分析与研究笔记
