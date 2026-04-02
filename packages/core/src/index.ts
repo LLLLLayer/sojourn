@@ -48,8 +48,6 @@ import { ClaudeCodeParser } from "./parser/claude.js";
 import { OpenCodeParser } from "./parser/opencode.js";
 import { ClaudeCodeAnalyzer } from "./analyzer/claude-code.js";
 import { ClaudeAnalyzer } from "./analyzer/claude-api.js";
-import { ClaudeMdSink } from "./sink/claude-md.js";
-import { FileSink } from "./sink/file.js";
 
 export const parserRegistry = new Registry<BaseParser>();
 parserRegistry.register("claude-code", ClaudeCodeParser);

@@ -1,5 +1,4 @@
 import Database from "better-sqlite3";
-import { readdir, stat, access } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
 import type { Message, MessageTree, ToolUse } from "@sojourn/shared";

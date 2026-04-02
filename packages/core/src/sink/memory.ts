@@ -67,11 +67,12 @@ export class MemorySink implements BaseSink {
   }
 
   private getSlug(result: AnalysisResult): string {
-    let text = "";
-    if (result.type === "sop") text = (result as any).title ?? "";
-    else if (result.type === "thought_tree")
-      text = (result as any).rootQuestion ?? "";
-    else text = (result as any).patternName ?? "";
+    const text =
+      result.type === "sop"
+        ? ((result as any).title ?? "")
+        : result.type === "thought_tree"
+          ? ((result as any).rootQuestion ?? "")
+          : ((result as any).patternName ?? "");
 
     return text
       .toLowerCase()

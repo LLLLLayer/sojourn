@@ -1,7 +1,6 @@
 import type { MessageTree, DistillMode } from "@sojourn/shared";
 import { isLinear, getBranches, getMainChain } from "@sojourn/shared";
 import type { BaseAnalyzer } from "../analyzer/base.js";
-import { renderPrompt } from "../prompts/loader.js";
 
 /**
  * Classify a single conversation into a distill mode.
@@ -59,36 +58,13 @@ export function classify(tree: MessageTree): Exclude<DistillMode, "auto"> {
 
 /**
  * Classify with LLM fallback for truly ambiguous cases.
+ * Currently falls back to rule-based classification.
  */
 export async function classifyWithLLM(
   tree: MessageTree,
-  analyzer: BaseAnalyzer
+  _analyzer: BaseAnalyzer
 ): Promise<Exclude<DistillMode, "auto">> {
-  const chain = getMainChain(tree);
-  const hasBranches = !isLinear(tree);
-  const toolCallCount = chain.reduce(
-    (sum, m) => sum + m.toolUses.length,
-    0
-  );
-
-  // Take first 3 and last 3 messages as preview
-  const preview = [
-    ...chain.slice(0, 3),
-    ...chain.slice(-3),
-  ]
-    .map((m) => `[${m.role.toUpperCase()}] ${m.content.slice(0, 200)}`)
-    .join("\n---\n");
-
-  const prompt = await renderPrompt("classifier", {
-    messageCount: String(chain.length),
-    hasBranches: String(hasBranches),
-    toolCallCount: String(toolCallCount),
-    conversationPreview: preview,
-  });
-
-  const result = await analyzer.analyze(tree, "sop"); // dummy call to get text
-  // The classifier prompt asks for just "thought_tree" or "sop"
-  // For now, use the rule-based approach as primary
+  // TODO: implement LLM-based classification using classifier prompt
   return classify(tree);
 }
 

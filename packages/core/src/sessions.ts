@@ -57,10 +57,10 @@ export async function resolveSessionPath(
 
     return matches[0];
   } catch (err: any) {
-    if (err.message.startsWith("Session not found") || err.message.startsWith("Ambiguous")) {
+    if (err.message?.startsWith("Session not found") || err.message?.startsWith("Ambiguous")) {
       throw err;
     }
-    throw new Error(`Cannot search sessions: ${err.message}`);
+    throw new Error(`Cannot search sessions: ${err.message}`, { cause: err });
   }
 }
 

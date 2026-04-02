@@ -1,4 +1,4 @@
-import { readFile, writeFile, readdir, mkdir, unlink } from "fs/promises";
+import { readFile, writeFile, readdir, mkdir } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
 import { randomUUID } from "crypto";

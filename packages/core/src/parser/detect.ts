@@ -1,4 +1,3 @@
-import { readFile, access } from "fs/promises";
 import { extname } from "path";
 
 export type DetectedFormat = "claude-code" | "opencode" | "unknown";

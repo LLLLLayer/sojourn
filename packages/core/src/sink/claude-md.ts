@@ -1,4 +1,4 @@
-import { readFile, writeFile, access, mkdir } from "fs/promises";
+import { readFile, writeFile, mkdir, access } from "fs/promises";
 import { dirname } from "path";
 import type { AnalysisResult } from "@sojourn/shared";
 import type { BaseSink } from "./base.js";

@@ -4,7 +4,7 @@ interface SessionsOptions {
   agent: string;
 }
 
-export async function sessions(options: SessionsOptions): Promise<void> {
+export async function sessions(_options: SessionsOptions): Promise<void> {
   const allSessions = await listSessions();
 
   if (allSessions.length === 0) {
