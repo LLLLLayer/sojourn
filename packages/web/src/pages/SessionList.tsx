@@ -1,20 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { ChatPreview } from "../components/ChatPreview.js";
-
-interface Session {
-  sessionId: string;
-  project: string;
-  path: string;
-  modified: string;
-  sizeKB: number;
-  alias: string | null;
-  firstMessage: string | null;
-  lastMessage: string | null;
-  messageCount: number;
-}
+import type { SessionItem } from "../types.js";
 
 export function SessionList({ onDistilled }: { onDistilled: (r: any) => void }) {
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [distilling, setDistilling] = useState(false);

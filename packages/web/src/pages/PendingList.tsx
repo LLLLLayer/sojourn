@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ThoughtTreeView } from "../components/ThoughtTreeView.js";
 import { SOPView } from "../components/SOPView.js";
 import { WorkflowView } from "../components/WorkflowView.js";
-
-interface PendingItem { id: string; resultType: string; resultData: any; status: string; createdAt: string; sessionIds: string[]; committedTo: string | null; }
+import type { PendingItem } from "../types.js";
 
 const STATUS: Record<string, { color: string; label: string }> = {
   pending: { color: "var(--accent)", label: "pending" },

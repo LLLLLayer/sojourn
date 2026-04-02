@@ -1,22 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-
-interface Message {
-  id: string;
-  role: string;
-  content: string;
-  toolUses: Array<{ name: string; input: Record<string, unknown>; output?: string }>;
-  isSidechain: boolean;
-  timestamp: string;
-}
-
-interface SessionDetail {
-  sessionId: string;
-  messageCount: number;
-  isLinear: boolean;
-  branchCount: number;
-  messages: Message[];
-}
+import type { SessionDetail, MessageItem } from "../types.js";
 
 export function ChatPreview({
   sessionId,
@@ -161,7 +145,7 @@ export function ChatPreview({
   );
 }
 
-function MessageBubble({ message, index: _index }: { message: Message; index: number }) {
+function MessageBubble({ message, index: _index }: { message: MessageItem; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const isUser = message.role === "user";
   const isSystem = message.role === "system" || message.role === "result";

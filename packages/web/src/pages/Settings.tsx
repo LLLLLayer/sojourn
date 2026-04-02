@@ -1,23 +1,13 @@
 import React, { useEffect, useState } from "react";
+import type { AppConfig } from "../types.js";
 
 function applyFontSize(size: number) {
-  const scale = size / 15; // 15 = baseline
+  const scale = size / 15;
   document.documentElement.style.zoom = String(scale);
 }
 
-
-interface Config {
-  language: string;
-  defaultAnalyzer: string;
-  defaultSinks: string[];
-  analyzers: Record<string, any>;
-  sinks: Record<string, any>;
-  git: { repos: Array<{ name: string; url: string }>; activeRepo: string | null };
-  agents: Record<string, { logPath: string }>;
-}
-
 export function Settings() {
-  const [config, setConfig] = useState<Config | null>(null);
+  const [config, setConfig] = useState<AppConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
