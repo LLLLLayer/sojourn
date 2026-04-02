@@ -36,3 +36,7 @@ Rules:
 - Recommendation should be actionable and concise
 - If no clear cross-session pattern exists, return the strongest single-session pattern
 - Output ONLY the JSON, no other text
+
+## Language
+
+{{language}}

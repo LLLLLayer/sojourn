@@ -53,3 +53,7 @@ Rules:
 - `messageIds` should reference the conversation message UUIDs that correspond to this node
 - Keep labels concise (under 80 characters)
 - Output ONLY the JSON, no other text
+
+## Language
+
+{{language}}

@@ -32,3 +32,7 @@ Rules:
 - Steps should be concrete and reusable by someone who wasn't in the original conversation
 - Include failure branches where the conversation showed error handling
 - Output ONLY the JSON, no other text
+
+## Language
+
+{{language}}

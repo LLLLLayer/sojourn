@@ -3,15 +3,23 @@ import type { MessageTree, AnalysisResult, DistillMode } from "@sojourn/shared";
 import { getMainChain } from "@sojourn/shared";
 import type { BaseAnalyzer } from "./base.js";
 import { renderPrompt } from "../prompts/loader.js";
+import { loadConfig } from "../config.js";
+
+const LANG_INSTRUCTIONS: Record<string, string> = {
+  zh: "IMPORTANT: Output ALL text content (titles, labels, descriptions, reasons, steps) in Chinese (中文). JSON keys remain in English.",
+  en: "Output all text content in English.",
+};
 
 export class ClaudeCodeAnalyzer implements BaseAnalyzer {
   async analyze(
     tree: MessageTree,
     mode: Exclude<DistillMode, "auto">
   ): Promise<AnalysisResult> {
+    const config = await loadConfig();
+    const langInstruction = LANG_INSTRUCTIONS[config.language] ?? LANG_INSTRUCTIONS.en;
     const conversation = this.formatConversation(tree);
     const promptName = this.getPromptName(mode);
-    const prompt = await renderPrompt(promptName, { conversation });
+    const prompt = await renderPrompt(promptName, { conversation, language: langInstruction });
 
     const text = await this.callClaude(prompt);
     const data = this.parseJSON(text);
@@ -28,6 +36,8 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
     trees: MessageTree[],
     mode: Exclude<DistillMode, "auto">
   ): Promise<AnalysisResult> {
+    const config = await loadConfig();
+    const langInstruction = LANG_INSTRUCTIONS[config.language] ?? LANG_INSTRUCTIONS.en;
     const conversations = trees
       .map(
         (t, i) =>
@@ -38,6 +48,7 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
     const promptName = this.getPromptName(mode);
     const prompt = await renderPrompt(promptName, {
       conversation: conversations,
+      language: langInstruction,
     });
 
     const text = await this.callClaude(prompt);
