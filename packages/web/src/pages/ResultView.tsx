@@ -1,6 +1,7 @@
 import React from "react";
 import { ThoughtTreeView } from "../components/ThoughtTreeView.js";
 import { SOPView } from "../components/SOPView.js";
+import { WorkflowView } from "../components/WorkflowView.js";
 
 export function ResultView({
   result,
@@ -46,7 +47,8 @@ export function ResultView({
       >
         {result.type === "thought_tree" && <ThoughtTreeView result={result} />}
         {result.type === "sop" && <SOPView result={result} />}
-        {result.type !== "thought_tree" && result.type !== "sop" && (
+        {result.type === "workflow" && <WorkflowView result={result} />}
+        {!["thought_tree", "sop", "workflow"].includes(result.type) && (
           <pre
             style={{
               fontSize: 11,
