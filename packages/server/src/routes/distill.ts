@@ -1,4 +1,7 @@
 import { Hono } from "hono";
+import { join } from "path";
+import { homedir } from "os";
+import { realpath } from "fs/promises";
 import {
   parserRegistry,
   analyzerRegistry,
@@ -19,6 +22,35 @@ import type { DistillMode, MessageTree } from "@sojourn/shared";
 
 const distill = new Hono();
 
+// --- Path safety ---
+
+const ALLOWED_READ_DIRS = [
+  join(homedir(), ".claude", "projects"),
+];
+
+const ALLOWED_WRITE_DIRS = [
+  process.cwd(),
+  join(homedir(), ".sojourn"),
+  join(homedir(), ".claude"),
+];
+
+async function validateReadPath(p: string): Promise<string> {
+  const resolved = await realpath(p).catch(() => p);
+  if (resolved.includes("..")) throw new Error("Invalid path: contains ..");
+  const allowed = ALLOWED_READ_DIRS.some((dir) => resolved.startsWith(dir));
+  if (!allowed) throw new Error(`Path not allowed: must be under ~/.claude/projects/`);
+  return resolved;
+}
+
+function validateWritePath(p: string): void {
+  if (p.includes("..")) throw new Error("Invalid path: contains ..");
+  const resolved = p.startsWith("/") ? p : join(process.cwd(), p);
+  const allowed = ALLOWED_WRITE_DIRS.some((dir) => resolved.startsWith(dir));
+  if (!allowed) throw new Error(`Output path not allowed: must be under cwd or ~/.sojourn/`);
+}
+
+// --- Routes ---
+
 // Trigger distillation
 distill.post("/", async (c) => {
   try {
@@ -28,13 +60,24 @@ distill.post("/", async (c) => {
       analyzer?: string;
     }>();
 
-    // Parse all sessions (auto-detect format)
+    // Input validation
+    if (!body.sessionPaths?.length) {
+      return c.json({ error: "sessionPaths is required and must be non-empty" }, 400);
+    }
+
+    const validModes = ["thought_tree", "sop", "workflow", "auto"];
+    if (body.mode && !validModes.includes(body.mode)) {
+      return c.json({ error: `Invalid mode: ${body.mode}` }, 400);
+    }
+
+    // Validate and parse all sessions
     const trees: MessageTree[] = [];
     for (const path of body.sessionPaths) {
-      const format = await detectFormat(path);
+      const safePath = await validateReadPath(path);
+      const format = await detectFormat(safePath);
       const parserName = format === "unknown" ? "claude-code" : format;
       const parser = parserRegistry.get(parserName);
-      trees.push(await parser.parse(path));
+      trees.push(await parser.parse(safePath));
     }
 
     let mode: Exclude<DistillMode, "auto">;
@@ -62,10 +105,7 @@ distill.post("/", async (c) => {
     return c.json({ id, result });
   } catch (err: any) {
     console.error("Distill error:", err.message);
-    return c.json(
-      { error: err.message ?? "Distillation failed" },
-      500
-    );
+    return c.json({ error: err.message ?? "Distillation failed" }, 500);
   }
 });
 
@@ -82,17 +122,19 @@ distill.get("/:id", async (c) => {
   return c.json(item);
 });
 
-// Edit a distill result
+// Edit a distill result (persist changes)
 distill.put("/:id", async (c) => {
-  const id = c.req.param("id");
-  const body = await c.req.json<{ resultData: any }>();
-  const item = await getPending(id);
-  if (!item) return c.json({ error: "Not found" }, 404);
+  try {
+    const id = c.req.param("id");
+    const body = await c.req.json<{ resultData: any }>();
+    const item = await getPending(id);
+    if (!item) return c.json({ error: "Not found" }, 404);
 
-  item.resultData = body.resultData;
-  item.status = "editing";
-  await updatePendingStatus(id, "editing");
-  return c.json({ ok: true });
+    await updatePendingStatus(id, "editing", undefined, body.resultData);
+    return c.json({ ok: true });
+  } catch (err: any) {
+    return c.json({ error: err.message ?? "Edit failed" }, 500);
+  }
 });
 
 // Commit a distill result to a sink
@@ -109,6 +151,11 @@ distill.post("/:id/commit", async (c) => {
 
     const sinkName = body.sink ?? "claude-md";
     const outputPath = body.outputPath ?? "./CLAUDE.md";
+
+    // Validate write path for file-based sinks
+    if (sinkName === "claude-md" || sinkName === "file") {
+      validateWritePath(outputPath);
+    }
 
     if (sinkName === "claude-md") {
       await new ClaudeMdSink(outputPath).write(item.resultData);

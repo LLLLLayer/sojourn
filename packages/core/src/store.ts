@@ -78,7 +78,8 @@ export async function getPending(id: string): Promise<PendingResult | null> {
 export async function updatePendingStatus(
   id: string,
   status: PendingStatus,
-  committedTo?: string
+  committedTo?: string,
+  resultData?: any
 ): Promise<void> {
   await ensureDir();
 
@@ -91,6 +92,7 @@ export async function updatePendingStatus(
     pending.status = status;
     pending.updatedAt = new Date().toISOString();
     if (committedTo) pending.committedTo = committedTo;
+    if (resultData) pending.resultData = resultData;
     await writeFile(filePath, JSON.stringify(pending, null, 2), "utf-8");
     return;
   }

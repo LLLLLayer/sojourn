@@ -114,8 +114,7 @@ export async function autoAnalyze(sessionId: string): Promise<void> {
   const sessionPath = await findSessionFile(claudeProjectsDir, sessionId);
 
   if (!sessionPath) {
-    console.error(`Session not found: ${sessionId}`);
-    process.exit(1);
+    throw new Error(`Session not found: ${sessionId}`);
   }
 
   const parser = parserRegistry.get("claude-code");

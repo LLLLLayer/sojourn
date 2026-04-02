@@ -9,13 +9,38 @@ import {
 
 const config = new Hono();
 
+// Strip sensitive fields before returning to client
+function sanitizeConfig(cfg: any): any {
+  const clone = JSON.parse(JSON.stringify(cfg));
+  if (clone.analyzers) {
+    for (const key of Object.keys(clone.analyzers)) {
+      if (clone.analyzers[key]?.apiKey) {
+        clone.analyzers[key].apiKey = "***";
+      }
+    }
+  }
+  return clone;
+}
+
 config.get("/", async (c) => {
-  return c.json(await loadConfig());
+  const cfg = await loadConfig();
+  return c.json(sanitizeConfig(cfg));
 });
 
 config.put("/", async (c) => {
   const body = await c.req.json();
-  await saveConfig(body);
+  // Merge with existing config to preserve fields not sent by client
+  const existing = await loadConfig();
+  const merged = { ...existing, ...body };
+  // Don't let client overwrite apiKey with "***"
+  if (body.analyzers) {
+    for (const key of Object.keys(body.analyzers)) {
+      if (body.analyzers[key]?.apiKey === "***") {
+        merged.analyzers[key].apiKey = existing.analyzers?.[key]?.apiKey;
+      }
+    }
+  }
+  await saveConfig(merged);
   return c.json({ ok: true });
 });
 

@@ -63,6 +63,8 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
   }
 
   private callClaude(prompt: string): Promise<string> {
+    const TIMEOUT_MS = 120_000; // 2 minutes
+
     return new Promise((resolve, reject) => {
       const proc = spawn("claude", ["-p", "--output-format", "text"], {
         stdio: ["pipe", "pipe", "pipe"],
@@ -70,6 +72,13 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
 
       let stdout = "";
       let stderr = "";
+      let timedOut = false;
+
+      const timer = setTimeout(() => {
+        timedOut = true;
+        proc.kill("SIGTERM");
+        reject(new Error("Claude Code CLI timed out after 120s"));
+      }, TIMEOUT_MS);
 
       proc.stdout.on("data", (chunk: Buffer) => {
         stdout += chunk.toString();
@@ -80,6 +89,8 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
       });
 
       proc.on("error", (err: NodeJS.ErrnoException) => {
+        clearTimeout(timer);
+        if (timedOut) return;
         if (err.code === "ENOENT") {
           reject(
             new Error(
@@ -92,6 +103,8 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
       });
 
       proc.on("close", (code) => {
+        clearTimeout(timer);
+        if (timedOut) return;
         if (code !== 0) {
           reject(
             new Error(`Claude Code exited with code ${code}: ${stderr}`)

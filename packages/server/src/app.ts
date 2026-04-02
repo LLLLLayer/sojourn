@@ -15,7 +15,9 @@ const STATIC_DIR = join(__dirname, "..", "static");
 export function createApp() {
   const app = new Hono();
 
-  app.use("/*", cors());
+  app.use("/*", cors({
+    origin: ["http://localhost:7878", "http://127.0.0.1:7878"],
+  }));
 
   // API routes
   app.route("/api/sessions", sessions);
