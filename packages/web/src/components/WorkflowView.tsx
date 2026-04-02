@@ -1,4 +1,5 @@
 import React from "react";
+import { t } from "../i18n.js";
 
 export function WorkflowView({ result }: { result: any }) {
   const evidence: string[] = result.evidence ?? [];
@@ -14,7 +15,7 @@ export function WorkflowView({ result }: { result: any }) {
             letterSpacing: "0.1em",
             textTransform: "uppercase",
           }}>
-            Workflow Pattern
+            {t("result.workflow")}
           </span>
           <span style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
         </div>
@@ -47,7 +48,7 @@ export function WorkflowView({ result }: { result: any }) {
             marginBottom: 10,
             fontWeight: 500,
           }}>
-            When
+            {t("result.when")}
           </div>
           <div style={{
             fontFamily: "var(--font-display)",
@@ -74,7 +75,7 @@ export function WorkflowView({ result }: { result: any }) {
             marginBottom: 10,
             fontWeight: 500,
           }}>
-            Do
+            {t("result.do")}
           </div>
           <div style={{
             fontFamily: "var(--font-display)",
@@ -98,7 +99,7 @@ export function WorkflowView({ result }: { result: any }) {
             textTransform: "uppercase",
             marginBottom: 12,
           }}>
-            Evidence from {result.sessionIds?.length ?? 0} sessions
+            {t("result.evidence", result.sessionIds?.length ?? 0)}
           </div>
           {evidence.map((e, i) => (
             <div

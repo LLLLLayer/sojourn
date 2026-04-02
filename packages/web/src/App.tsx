@@ -1,13 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SessionList } from "./pages/SessionList.js";
 import { ResultView } from "./pages/ResultView.js";
 import { PendingList } from "./pages/PendingList.js";
+import { setLanguage, getLanguage, t, type Language } from "./i18n.js";
 
 type Page = "sessions" | "pending" | "result";
 
 export function App() {
   const [page, setPage] = useState<Page>("sessions");
   const [resultData, setResultData] = useState<any>(null);
+  const [, setLangTick] = useState(0); // force re-render on language change
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((config) => {
+        if (config.language) {
+          setLanguage(config.language);
+          setLangTick((n) => n + 1);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const toggleLang = () => {
+    const next: Language = getLanguage() === "zh" ? "en" : "zh";
+    setLanguage(next);
+    setLangTick((n) => n + 1);
+    // Persist
+    fetch("/api/config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language: next }),
+    }).catch(() => {});
+  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -36,7 +62,7 @@ export function App() {
               letterSpacing: "-0.02em",
             }}
           >
-            Sojourn
+            {t("app.title")}
           </h1>
           <p
             style={{
@@ -48,7 +74,7 @@ export function App() {
               letterSpacing: "0.04em",
             }}
           >
-            knowledge distillation
+            {t("app.subtitle")}
           </p>
         </div>
 
@@ -56,14 +82,14 @@ export function App() {
           <NavItem
             active={page === "sessions"}
             onClick={() => setPage("sessions")}
-            label="Sessions"
+            label={t("nav.sessions")}
             shortcut="S"
             delay={1}
           />
           <NavItem
             active={page === "pending"}
             onClick={() => setPage("pending")}
-            label="Pending"
+            label={t("nav.pending")}
             shortcut="P"
             delay={2}
           />
@@ -75,12 +101,42 @@ export function App() {
           className="animate-fade-in"
           style={{
             padding: "0 24px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span style={{
             fontSize: 10,
             color: "var(--text-muted)",
             fontFamily: "var(--font-mono)",
-          }}
-        >
-          v0.1.0
+          }}>
+            {t("app.version")}
+          </span>
+          <button
+            onClick={toggleLang}
+            style={{
+              background: "transparent",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: "var(--radius-sm)",
+              color: "var(--text-muted)",
+              fontSize: 10,
+              fontFamily: "var(--font-mono)",
+              padding: "2px 8px",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              (e.target as HTMLElement).style.borderColor = "var(--border-default)";
+              (e.target as HTMLElement).style.color = "var(--text-secondary)";
+            }}
+            onMouseLeave={(e) => {
+              (e.target as HTMLElement).style.borderColor = "var(--border-subtle)";
+              (e.target as HTMLElement).style.color = "var(--text-muted)";
+            }}
+          >
+            {getLanguage() === "zh" ? "EN" : "中"}
+          </button>
         </div>
       </aside>
 

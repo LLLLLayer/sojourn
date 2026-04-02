@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { t } from "../i18n.js";
 
 interface Session {
   sessionId: string;
@@ -67,7 +68,7 @@ export function SessionList({
   if (loading) {
     return (
       <div className="animate-fade-in" style={{ color: "var(--text-muted)", fontStyle: "italic", fontFamily: "var(--font-display)" }}>
-        Loading sessions...
+        {t("sessions.loading")}
       </div>
     );
   }
@@ -86,10 +87,10 @@ export function SessionList({
               letterSpacing: "-0.03em",
             }}
           >
-            Sessions
+            {t("sessions.title")}
           </h2>
           <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4, fontFamily: "var(--font-mono)" }}>
-            {sessions.length} conversations · {selected.size} selected
+            {t("sessions.count", sessions.length, selected.size)}
           </p>
         </div>
 
@@ -112,7 +113,7 @@ export function SessionList({
             opacity: distilling ? 0.6 : 1,
           }}
         >
-          {distilling ? "Distilling..." : "Distill"}
+          {distilling ? t("sessions.distilling") : t("sessions.distill")}
         </button>
       </div>
 

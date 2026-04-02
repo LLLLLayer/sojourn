@@ -14,7 +14,10 @@ export interface GitSinkConfig {
   activeRepo: string | null;
 }
 
+export type Language = "zh" | "en";
+
 export interface SojournConfig {
+  language: Language;
   defaultAnalyzer: string;
   defaultSinks: string[];
   analyzers: Record<string, AnalyzerConfig>;

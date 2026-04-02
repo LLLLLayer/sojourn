@@ -1,4 +1,5 @@
 import React from "react";
+import { t } from "../i18n.js";
 
 interface Step {
   description: string;
@@ -20,7 +21,7 @@ export function SOPView({ result }: { result: any }) {
             letterSpacing: "0.1em",
             textTransform: "uppercase",
           }}>
-            Standard Operating Procedure
+            {t("result.sop")}
           </span>
           <span style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
         </div>
@@ -120,7 +121,7 @@ export function SOPView({ result }: { result: any }) {
                   border: "1px dashed var(--border-warm)",
                 }}>
                   <span style={{ color: "var(--accent-ochre)", fontSize: 11, flexShrink: 0, fontWeight: 500 }}>
-                    PRE
+                    {t("result.precondition")}
                   </span>
                   <span style={{
                     color: "var(--accent-ochre)",
@@ -145,7 +146,7 @@ export function SOPView({ result }: { result: any }) {
                   border: "1px dashed var(--accent-terracotta-dim)",
                 }}>
                   <span style={{ color: "var(--accent-terracotta)", fontSize: 11, flexShrink: 0, fontWeight: 500 }}>
-                    FAIL
+                    {t("result.onFailure")}
                   </span>
                   <span style={{
                     color: "var(--accent-terracotta)",

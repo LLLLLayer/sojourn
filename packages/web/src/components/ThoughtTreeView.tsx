@@ -1,4 +1,5 @@
 import React from "react";
+import { t } from "../i18n.js";
 
 interface TreeNode {
   id: string;
@@ -41,7 +42,7 @@ export function ThoughtTreeView({ result }: { result: any }) {
             letterSpacing: "0.1em",
             textTransform: "uppercase",
           }}>
-            Thought Tree
+            {t("result.thoughtTree")}
           </span>
           <span style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
         </div>

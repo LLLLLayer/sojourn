@@ -6,6 +6,7 @@ import type { SojournConfig } from "@sojourn/shared";
 const CONFIG_PATH = join(homedir(), ".sojourn", "config.json");
 
 const DEFAULT_CONFIG: SojournConfig = {
+  language: "zh",
   defaultAnalyzer: "claude-code",
   defaultSinks: ["claude-md"],
   analyzers: {
