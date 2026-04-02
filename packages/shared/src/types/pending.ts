@@ -1,6 +1,6 @@
 import type { AnalysisResult, DistillMode } from "./result.js";
 
-export type PendingStatus = "pending" | "editing" | "committed" | "discarded";
+export type PendingStatus = "processing" | "pending" | "editing" | "committed" | "discarded" | "error";
 
 export interface PendingResult {
   id: string;

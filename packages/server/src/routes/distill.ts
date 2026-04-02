@@ -67,39 +67,56 @@ distill.post("/", async (c) => {
       return c.json({ error: `Invalid mode: ${body.mode}` }, 400);
     }
 
-    // Validate and parse all sessions
-    const trees: MessageTree[] = [];
+    // Validate paths upfront
+    const safePaths: string[] = [];
     for (const path of body.sessionPaths) {
-      const safePath = await validateReadPath(path);
-      const format = await detectFormat(safePath);
-      const parserName = format === "unknown" ? "claude-code" : format;
-      const parser = parserRegistry.get(parserName);
-      trees.push(await parser.parse(safePath));
+      safePaths.push(await validateReadPath(path));
     }
 
-    let mode: Exclude<DistillMode, "auto">;
-    if (body.mode && body.mode !== "auto") {
-      mode = body.mode as Exclude<DistillMode, "auto">;
-    } else if (trees.length > 1) {
-      mode = classifyMulti(trees);
-    } else {
-      mode = classify(trees[0]);
-    }
+    // Create a "processing" pending entry immediately
+    const placeholderResult = {
+      type: (body.mode && body.mode !== "auto" ? body.mode : "sop") as Exclude<DistillMode, "auto">,
+      sessionIds: safePaths.map((p) => p.split("/").pop()?.replace(".jsonl", "") ?? ""),
+      createdAt: new Date(),
+    };
+    const id = await savePending(placeholderResult.sessionIds, placeholderResult);
+    await updatePendingStatus(id, "processing" as any);
 
-    const analyzerName = body.analyzer ?? "claude-code";
-    const analyzer = analyzerRegistry.get(analyzerName);
+    // Run analysis in background (non-blocking)
+    (async () => {
+      try {
+        const trees: MessageTree[] = [];
+        for (const safePath of safePaths) {
+          const format = await detectFormat(safePath);
+          const parserName = format === "unknown" ? "claude-code" : format;
+          const parser = parserRegistry.get(parserName);
+          trees.push(await parser.parse(safePath));
+        }
 
-    const result =
-      trees.length > 1
-        ? await analyzer.analyzeMulti(trees, mode)
-        : await analyzer.analyze(trees[0], mode);
+        let mode: Exclude<DistillMode, "auto">;
+        if (body.mode && body.mode !== "auto") {
+          mode = body.mode as Exclude<DistillMode, "auto">;
+        } else if (trees.length > 1) {
+          mode = classifyMulti(trees);
+        } else {
+          mode = classify(trees[0]);
+        }
 
-    const id = await savePending(
-      trees.map((t) => t.sessionId),
-      result
-    );
+        const analyzerName = body.analyzer ?? "claude-code";
+        const analyzer = analyzerRegistry.get(analyzerName);
+        const result =
+          trees.length > 1
+            ? await analyzer.analyzeMulti(trees, mode)
+            : await analyzer.analyze(trees[0], mode);
 
-    return c.json({ id, result });
+        await updatePendingStatus(id, "pending", undefined, result);
+      } catch (err: any) {
+        console.error(`Distill ${id} failed:`, err.message);
+        await updatePendingStatus(id, "error" as any, undefined, { error: err.message });
+      }
+    })();
+
+    return c.json({ id, status: "processing" });
   } catch (err: any) {
     console.error("Distill error:", err.message);
     return c.json({ error: err.message ?? "Distillation failed" }, 500);

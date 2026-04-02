@@ -5,10 +5,12 @@ import { WorkflowView } from "../components/WorkflowView.js";
 import type { PendingItem } from "../types.js";
 
 const STATUS: Record<string, { color: string; label: string }> = {
+  processing: { color: "var(--blue)", label: "processing..." },
   pending: { color: "var(--accent)", label: "pending" },
   editing: { color: "var(--blue)", label: "editing" },
   committed: { color: "var(--green)", label: "committed" },
   discarded: { color: "var(--text-tertiary)", label: "discarded" },
+  error: { color: "var(--red)", label: "error" },
 };
 
 export function PendingList() {
