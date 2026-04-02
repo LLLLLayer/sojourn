@@ -58,17 +58,17 @@ export function SOPView({ result }: { result: any }) {
               gridTemplateColumns: "40px 1fr",
               gap: 16,
               marginBottom: 2,
-              padding: "14px 16px",
-              borderRadius: "var(--radius-sm)",
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border-subtle)",
-              transition: "border-color 0.2s ease",
+              padding: "16px 20px",
+              borderRadius: "var(--radius-lg)",
+              background: "var(--bg-elevated)",
+              border: "none",
+              transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-hover)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "none";
             }}
           >
             {/* Step Number */}
@@ -115,10 +115,10 @@ export function SOPView({ result }: { result: any }) {
                   alignItems: "flex-start",
                   gap: 8,
                   marginTop: 10,
-                  padding: "8px 10px",
-                  borderRadius: "var(--radius-sm)",
+                  padding: "8px 12px",
+                  borderRadius: "var(--radius-md)",
                   background: "#fdf6e8",
-                  border: "1px dashed var(--border-warm)",
+                  border: "none",
                 }}>
                   <span style={{ color: "var(--accent-ochre)", fontSize: 11, flexShrink: 0, fontWeight: 500 }}>
                     {t("result.precondition")}
@@ -140,10 +140,10 @@ export function SOPView({ result }: { result: any }) {
                   alignItems: "flex-start",
                   gap: 8,
                   marginTop: 6,
-                  padding: "8px 10px",
-                  borderRadius: "var(--radius-sm)",
+                  padding: "8px 12px",
+                  borderRadius: "var(--radius-md)",
                   background: "#fdf0ed",
-                  border: "1px dashed var(--accent-terracotta-dim)",
+                  border: "none",
                 }}>
                   <span style={{ color: "var(--accent-terracotta)", fontSize: 11, flexShrink: 0, fontWeight: 500 }}>
                     {t("result.onFailure")}

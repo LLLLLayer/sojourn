@@ -3,14 +3,14 @@ import { SessionList } from "./pages/SessionList.js";
 import { ResultView } from "./pages/ResultView.js";
 import { PendingList } from "./pages/PendingList.js";
 import { Settings } from "./pages/Settings.js";
-import { setLanguage, getLanguage, t, type Language } from "./i18n.js";
+import { setLanguage, t, type Language } from "./i18n.js";
 
 type Page = "sessions" | "pending" | "settings" | "result";
 
 export function App() {
   const [page, setPage] = useState<Page>("sessions");
   const [resultData, setResultData] = useState<any>(null);
-  const [, setLangTick] = useState(0); // force re-render on language change
+  const [, setLangTick] = useState(0);
 
   useEffect(() => {
     fetch("/api/config")
@@ -24,90 +24,74 @@ export function App() {
       .catch(() => {});
   }, []);
 
-  const toggleLang = () => {
-    const next: Language = getLanguage() === "zh" ? "en" : "zh";
-    setLanguage(next);
-    setLangTick((n) => n + 1);
-    // Persist
-    fetch("/api/config", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ language: next }),
-    }).catch(() => {});
-  };
-
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div style={{
+      display: "flex",
+      minHeight: "100vh",
+      padding: 12,
+      gap: 12,
+      background: "var(--bg-deep)",
+    }}>
       {/* Sidebar */}
       <aside
         style={{
-          width: 220,
-          borderRight: "1px solid var(--border-subtle)",
-          padding: "32px 0",
+          width: 200,
+          borderRadius: "var(--radius-xl)",
+          padding: "28px 0",
           flexShrink: 0,
-          background: "var(--bg-elevated)",
+          background: "var(--bg-surface)",
+          boxShadow: "var(--shadow-card)",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         <div
           className="animate-fade-in"
-          style={{ padding: "0 24px", marginBottom: 48 }}
+          style={{ padding: "0 22px", marginBottom: 40 }}
         >
-          <h1
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 22,
-              fontWeight: 500,
-              color: "var(--text-warm)",
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <h1 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 21,
+            fontWeight: 500,
+            color: "var(--text-warm)",
+            letterSpacing: "-0.02em",
+          }}>
             {t("app.title")}
           </h1>
-          <p
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 11,
-              color: "var(--text-muted)",
-              fontStyle: "italic",
-              marginTop: 4,
-              letterSpacing: "0.04em",
-            }}
-          >
+          <p style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 11,
+            color: "var(--text-muted)",
+            fontStyle: "italic",
+            marginTop: 3,
+          }}>
             {t("app.subtitle")}
           </p>
         </div>
 
-        <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <NavItem
-            active={page === "sessions"}
-            onClick={() => setPage("sessions")}
-            label={t("nav.sessions")}
-            shortcut="S"
-            delay={1}
-          />
-          <NavItem
-            active={page === "pending"}
-            onClick={() => setPage("pending")}
-            label={t("nav.pending")}
-            shortcut="P"
-            delay={2}
-          />
-          <NavItem
-            active={page === "settings"}
-            onClick={() => setPage("settings")}
-            label="Settings"
-            shortcut="/"
-            delay={3}
-          />
+        <nav style={{ display: "flex", flexDirection: "column", gap: 2, padding: "0 8px" }}>
+          {([
+            { key: "sessions" as Page, label: t("nav.sessions"), icon: "S" },
+            { key: "pending" as Page, label: t("nav.pending"), icon: "P" },
+            { key: "settings" as Page, label: "Settings", icon: "/" },
+          ]).map((item, i) => (
+            <NavItem
+              key={item.key}
+              active={page === item.key}
+              onClick={() => setPage(item.key)}
+              label={item.label}
+              shortcut={item.icon}
+              delay={i + 1}
+            />
+          ))}
         </nav>
 
         <div style={{ flex: 1 }} />
 
         <div
           className="animate-fade-in"
-          style={{ padding: "0 24px" }}
+          style={{ padding: "0 22px" }}
         >
           <span style={{
             fontSize: 10,
@@ -119,15 +103,16 @@ export function App() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main
-        style={{
-          flex: 1,
-          padding: "40px 48px",
-          maxWidth: 880,
-          overflow: "auto",
-        }}
-      >
+      {/* Main */}
+      <main style={{
+        flex: 1,
+        borderRadius: "var(--radius-xl)",
+        background: "var(--bg-surface)",
+        boxShadow: "var(--shadow-card)",
+        padding: "36px 44px",
+        overflow: "auto",
+        minWidth: 0,
+      }}>
         {page === "sessions" && (
           <SessionList
             onDistilled={(result) => {
@@ -139,10 +124,7 @@ export function App() {
         {page === "pending" && <PendingList />}
         {page === "settings" && <Settings />}
         {page === "result" && resultData && (
-          <ResultView
-            result={resultData}
-            onBack={() => setPage("sessions")}
-          />
+          <ResultView result={resultData} onBack={() => setPage("sessions")} />
         )}
       </main>
     </div>
@@ -170,39 +152,33 @@ function NavItem({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "8px 24px",
+        padding: "9px 14px",
         background: active ? "var(--bg-selected)" : "transparent",
         color: active ? "var(--text-warm)" : "var(--text-secondary)",
         border: "none",
-        borderLeft: active
-          ? "2px solid var(--accent-amber)"
-          : "2px solid transparent",
+        borderRadius: "var(--radius-md)",
         cursor: "pointer",
         fontSize: 13,
         fontFamily: "var(--font-mono)",
-        fontWeight: active ? 400 : 300,
-        letterSpacing: "0.02em",
-        transition: "all 0.2s ease",
+        fontWeight: active ? 500 : 300,
+        letterSpacing: "0.01em",
+        transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
         textAlign: "left",
       }}
       onMouseEnter={(e) => {
-        if (!active)
-          (e.target as HTMLElement).style.background = "var(--bg-hover)";
+        if (!active) (e.currentTarget).style.background = "var(--bg-hover)";
       }}
       onMouseLeave={(e) => {
-        if (!active)
-          (e.target as HTMLElement).style.background = "transparent";
+        if (!active) (e.currentTarget).style.background = "transparent";
       }}
     >
       {label}
-      <span
-        style={{
-          fontSize: 10,
-          color: "var(--text-muted)",
-          fontWeight: 300,
-          opacity: 0.6,
-        }}
-      >
+      <span style={{
+        fontSize: 10,
+        color: "var(--text-muted)",
+        fontWeight: 300,
+        opacity: 0.5,
+      }}>
         {shortcut}
       </span>
     </button>

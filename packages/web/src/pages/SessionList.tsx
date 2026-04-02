@@ -133,7 +133,7 @@ export function SessionList({ onDistilled }: { onDistilled: (result: any) => voi
             background: selected.size > 0 ? "var(--accent-amber)" : "var(--bg-elevated)",
             color: selected.size > 0 ? "#fff" : "var(--text-muted)",
             border: "none",
-            borderRadius: "var(--radius-sm)",
+            borderRadius: "var(--radius-lg)",
             padding: "10px 28px",
             cursor: selected.size > 0 ? "pointer" : "default",
             fontSize: 12,
@@ -197,23 +197,29 @@ export function SessionList({ onDistilled }: { onDistilled: (result: any) => voi
                 <div
                   key={s.sessionId}
                   style={{
-                    background: "var(--bg-surface)",
+                    background: isSelected ? "var(--bg-selected)" : "var(--bg-elevated)",
                     border: isSelected
                       ? "1px solid var(--accent-amber-dim)"
-                      : "1px solid var(--border-subtle)",
-                    borderRadius: "var(--radius-md)",
-                    padding: "14px 16px",
-                    marginBottom: 6,
+                      : "1px solid transparent",
+                    borderRadius: "var(--radius-lg)",
+                    padding: "16px 20px",
+                    marginBottom: 8,
                     cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    boxShadow: isSelected ? "0 1px 4px rgba(0,0,0,0.04)" : "none",
+                    transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
+                    boxShadow: isSelected ? "var(--shadow-selected)" : "none",
                   }}
                   onClick={() => toggle(s.path)}
                   onMouseEnter={(e) => {
-                    if (!isSelected) (e.currentTarget).style.borderColor = "var(--border-default)";
+                    if (!isSelected) {
+                      (e.currentTarget).style.boxShadow = "var(--shadow-hover)";
+                      (e.currentTarget).style.transform = "translateY(-1px)";
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isSelected) (e.currentTarget).style.borderColor = "var(--border-subtle)";
+                    if (!isSelected) {
+                      (e.currentTarget).style.boxShadow = "none";
+                      (e.currentTarget).style.transform = "none";
+                    }
                   }}
                 >
                   {/* Top row: checkbox + name + meta */}
@@ -359,22 +365,22 @@ export function SessionList({ onDistilled }: { onDistilled: (result: any) => voi
                   display: "block",
                   width: "100%",
                   background: "transparent",
-                  border: "1px dashed var(--border-subtle)",
-                  borderRadius: "var(--radius-sm)",
+                  border: "none",
+                  borderRadius: "var(--radius-md)",
                   color: "var(--text-muted)",
                   fontSize: 11,
                   fontFamily: "var(--font-mono)",
-                  padding: "8px",
+                  padding: "10px",
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
                   marginTop: 2,
                 }}
                 onMouseEnter={(e) => {
-                  (e.target as HTMLElement).style.borderColor = "var(--border-default)";
+                  (e.target as HTMLElement).style.background = "var(--bg-hover)";
                   (e.target as HTMLElement).style.color = "var(--text-secondary)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.target as HTMLElement).style.borderColor = "var(--border-subtle)";
+                  (e.target as HTMLElement).style.background = "transparent";
                   (e.target as HTMLElement).style.color = "var(--text-muted)";
                 }}
               >

@@ -131,10 +131,10 @@ function TreeBranch({
                 alignItems: "flex-start",
                 gap: 10,
                 padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
+                borderRadius: "var(--radius-md)",
                 background: style.bg,
                 border: `1px solid ${style.border}`,
-                transition: "all 0.2s ease",
+                transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.borderColor = style.fg;
@@ -146,7 +146,7 @@ function TreeBranch({
               <span style={{
                 display: "inline-block",
                 padding: "2px 8px",
-                borderRadius: 3,
+                borderRadius: "var(--radius-sm)",
                 fontSize: 10,
                 fontWeight: 500,
                 color: style.fg,

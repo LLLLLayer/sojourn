@@ -40,10 +40,11 @@ export function ResultView({
 
       <div
         style={{
-          background: "var(--bg-surface)",
-          borderRadius: "var(--radius-lg)",
-          border: "1px solid var(--border-subtle)",
+          background: "var(--bg-elevated)",
+          borderRadius: "var(--radius-xl)",
+          border: "none",
           padding: "32px 36px",
+          boxShadow: "var(--shadow-card)",
         }}
       >
         {result.type === "thought_tree" && <ThoughtTreeView result={result} />}

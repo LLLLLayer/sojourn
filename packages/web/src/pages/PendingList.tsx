@@ -129,10 +129,11 @@ export function PendingList() {
 
         {/* Result visualization */}
         <div style={{
-          background: "var(--bg-surface)",
-          borderRadius: "var(--radius-lg)",
-          border: "1px solid var(--border-subtle)",
+          background: "var(--bg-elevated)",
+          borderRadius: "var(--radius-xl)",
+          border: "none",
           padding: "32px 36px",
+          boxShadow: "var(--shadow-card)",
         }}>
           {selected.resultData?.type === "thought_tree" && (
             <ThoughtTreeView result={selected.resultData} />
@@ -202,21 +203,23 @@ export function PendingList() {
                   gridTemplateColumns: "10px 90px 1fr 140px auto",
                   alignItems: "center",
                   gap: 16,
-                  padding: "12px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  background: "var(--bg-surface)",
-                  border: "1px solid var(--border-subtle)",
-                  marginBottom: 4,
+                  padding: "14px 18px",
+                  borderRadius: "var(--radius-lg)",
+                  background: "var(--bg-elevated)",
+                  border: "none",
+                  marginBottom: 6,
                   fontSize: 12,
                   fontFamily: "var(--font-mono)",
                   cursor: "pointer",
-                  transition: "border-color 0.2s ease",
+                  transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-hover)";
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                  (e.currentTarget as HTMLElement).style.transform = "none";
                 }}
               >
                 <span style={{
