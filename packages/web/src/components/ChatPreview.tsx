@@ -12,6 +12,7 @@ export function ChatPreview({
   const [data, setData] = useState<SessionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(50);
 
   useEffect(() => {
     setLoading(true);
@@ -134,9 +135,35 @@ export function ChatPreview({
               Empty session
             </div>
           ) : (
-            data?.messages.map((msg, i) => (
-              <MessageBubble key={msg.id || i} message={msg} index={i} />
-            ))
+            (() => {
+              const msgs = (data?.messages ?? []).filter((m) => {
+                if ((m.role === "system" || m.role === "result") && !m.content.trim()) return false;
+                if (m.role === "assistant" && !m.content.trim() && !m.toolUses?.length) return false;
+                return true;
+              });
+              const visible = msgs.slice(0, visibleCount);
+              return (
+                <>
+                  {visible.map((msg, i) => (
+                    <MessageBubble key={msg.id || i} message={msg} index={i} />
+                  ))}
+                  {msgs.length > visibleCount && (
+                    <button
+                      onClick={() => setVisibleCount((n) => n + 50)}
+                      style={{
+                        display: "block", width: "100%", padding: "10px",
+                        background: "var(--bg-subtle)", border: "none",
+                        borderRadius: "var(--radius-s)", color: "var(--text-secondary)",
+                        fontSize: 12, fontFamily: "var(--font-mono)", cursor: "pointer",
+                        marginTop: 8,
+                      }}
+                    >
+                      Show more ({msgs.length - visibleCount} remaining)
+                    </button>
+                  )}
+                </>
+              );
+            })()
           )}
         </div>
       </div>
