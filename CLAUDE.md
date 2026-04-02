@@ -63,3 +63,23 @@ TypeScript monorepo（pnpm workspace），5 个包：
 - `docs/internal/thought-tree-spec.md` — 思维树规范
 - `docs/internal/development-plan.md` — 开发计划
 - `research/CLAUDE.md` — 竞品分析与研究笔记
+
+## Sojourn 知识提炼
+
+### Clone a GitHub Repository and Configure SSH Push Access
+_2026-04-01 | SOP | session: c4329027-540f-4b4e-838b-509cf86958f9_
+
+1. Attempt to clone the repository using SSH (git clone git@github.com:user/repo.git)
+   - 失败处理: If SSH clone fails with 'Permission denied (publickey)', fall back to cloning via HTTPS (git clone https://github.com/user/repo.git)
+2. Check if an SSH key already exists (~/.ssh/id_ed25519.pub or ~/.ssh/id_rsa.pub)
+   - 失败处理: If no key exists, generate a new Ed25519 key: ssh-keygen -t ed25519 -C 'your_email@example.com' -f ~/.ssh/id_ed25519 -N ''
+3. Test SSH connectivity to GitHub: ssh -T git@github.com
+   - 失败处理: If connection fails, the public key needs to be added to GitHub. Proceed to next step.
+4. Display the public key contents: cat ~/.ssh/id_ed25519.pub
+5. Verify the key is in OpenSSH format (should start with 'ssh-ed25519' or 'ssh-rsa'). If GitHub rejects an old RSA key format, generate a new Ed25519 key: ssh-keygen -t ed25519 -C 'your_email@example.com' -f ~/.ssh/id_ed25519 -N ''
+   - 失败处理: If the key format is rejected by GitHub ('Key is invalid. You must supply a key in OpenSSH public key format'), generate a new Ed25519 key and use that instead
+6. Add the public key to GitHub: go to GitHub → Settings → SSH and GPG keys → New SSH key. Set Title to a machine identifier (e.g. 'MacBook'), keep Key type as 'Authentication Key', paste the public key into the Key field, and click 'Add SSH key'
+7. Verify SSH authentication works: ssh -T git@github.com. Expected output: 'Hi username! You've successfully authenticated...'
+   - 失败处理: If still failing, check that the correct key is being offered (ssh -vT git@github.com) and that ssh-agent has the key loaded
+8. If the repository was cloned via HTTPS, switch the remote URL to SSH: git remote set-url origin git@github.com:user/repo.git
+9. Verify the remote URL is set correctly: git remote -v (should show git@github.com:... for both fetch and push)
