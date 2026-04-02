@@ -7,6 +7,8 @@ export { ClaudeMdSink } from "./sink/claude-md.js";
 export { FileSink } from "./sink/file.js";
 export { classify, classifyMulti, classifyWithLLM } from "./distiller/classifier.js";
 export { detectFormat } from "./parser/detect.js";
+export { resolveSessionPath, listSessions } from "./sessions.js";
+export type { SessionInfo } from "./sessions.js";
 export { renderPrompt } from "./prompts/loader.js";
 export {
   savePending,

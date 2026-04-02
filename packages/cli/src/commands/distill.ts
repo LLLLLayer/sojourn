@@ -4,6 +4,7 @@ import {
   classify,
   classifyMulti,
   detectFormat,
+  resolveSessionPath,
   ClaudeMdSink,
   FileSink,
   GitRepoSink,
@@ -32,9 +33,10 @@ export async function distill(
   sessionPaths: string[],
   options: DistillOptions
 ): Promise<void> {
-  // Parse all sessions (auto-detect format)
+  // Resolve session IDs to paths, then parse
   const trees: MessageTree[] = [];
-  for (const path of sessionPaths) {
+  for (const input of sessionPaths) {
+    const path = await resolveSessionPath(input);
     const format = await detectFormat(path);
     const parserName = format === "unknown" ? "claude-code" : format;
     const parser = parserRegistry.get(parserName);

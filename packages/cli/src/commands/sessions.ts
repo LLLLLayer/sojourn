@@ -1,53 +1,32 @@
-import { readdir, stat } from "fs/promises";
-import { join } from "path";
-import { homedir } from "os";
+import { listSessions } from "@sojourn/core";
 
 interface SessionsOptions {
   agent: string;
 }
 
 export async function sessions(options: SessionsOptions): Promise<void> {
-  const claudeProjectsDir = join(homedir(), ".claude", "projects");
+  const allSessions = await listSessions();
 
-  try {
-    const projects = await readdir(claudeProjectsDir);
+  if (allSessions.length === 0) {
+    console.log("No sessions found.");
+    return;
+  }
 
-    let totalSessions = 0;
+  // Group by project
+  const grouped = new Map<string, typeof allSessions>();
+  for (const s of allSessions) {
+    if (!grouped.has(s.project)) grouped.set(s.project, []);
+    grouped.get(s.project)!.push(s);
+  }
 
-    for (const project of projects) {
-      const projectDir = join(claudeProjectsDir, project);
-      const projectStat = await stat(projectDir);
-      if (!projectStat.isDirectory()) continue;
-
-      const files = await readdir(projectDir);
-      const jsonlFiles = files.filter((f) => f.endsWith(".jsonl"));
-
-      if (jsonlFiles.length === 0) continue;
-
-      const projectName = decodeURIComponent(project).replace(
-        /^-/,
-        "/"
-      );
-      console.log(`\n${projectName}`);
-
-      for (const file of jsonlFiles) {
-        const filePath = join(projectDir, file);
-        const fileStat = await stat(filePath);
-        const sessionId = file.replace(".jsonl", "");
-        const modified = fileStat.mtime.toISOString().slice(0, 16).replace("T", " ");
-        const sizeKB = Math.round(fileStat.size / 1024);
-
-        console.log(`  ${modified}  ${sizeKB}KB  ${sessionId}`);
-        totalSessions++;
-      }
-    }
-
-    console.log(`\n${totalSessions} sessions found`);
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-      console.log("No Claude Code sessions found at ~/.claude/projects/");
-    } else {
-      throw err;
+  for (const [project, items] of grouped) {
+    console.log(`\n${project}`);
+    for (const s of items) {
+      const modified = s.modified.toISOString().slice(0, 16).replace("T", " ");
+      const size = String(s.sizeKB).padStart(5) + "KB";
+      console.log(`  ${modified}  ${size}  ${s.sessionId}`);
     }
   }
+
+  console.log(`\n${allSessions.length} sessions found`);
 }
