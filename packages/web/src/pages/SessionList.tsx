@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ChatPreview } from "../components/ChatPreview.js";
 
 interface Session {
   sessionId: string;
@@ -12,7 +13,7 @@ interface Session {
   messageCount: number;
 }
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 60;
 
 export function SessionList({ onDistilled }: { onDistilled: (result: any) => void }) {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -26,6 +27,7 @@ export function SessionList({ onDistilled }: { onDistilled: (result: any) => voi
   const [filter, setFilter] = useState("");
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const [confirmDeleteProject, setConfirmDeleteProject] = useState<string | null>(null);
+  const [previewSession, setPreviewSession] = useState<string | null>(null);
 
   const load = () => {
     fetch("/api/sessions")
@@ -240,7 +242,7 @@ export function SessionList({ onDistilled }: { onDistilled: (result: any) => voi
             <div
               key={s.sessionId}
               className={`animate-fade-up stagger-${Math.min(i % 8 + 1, 8)}`}
-              onClick={() => toggle(s.path)}
+              onClick={() => setPreviewSession(s.sessionId)}
               style={{
                 height: 140,
                 background: isSelected ? "var(--bg-selected)" : "var(--bg-elevated)",
@@ -406,6 +408,13 @@ export function SessionList({ onDistilled }: { onDistilled: (result: any) => voi
             Show more ({filtered.length - visibleCount} remaining)
           </button>
         </div>
+      )}
+      {/* Chat Preview Modal */}
+      {previewSession && (
+        <ChatPreview
+          sessionId={previewSession}
+          onClose={() => setPreviewSession(null)}
+        />
       )}
     </div>
   );

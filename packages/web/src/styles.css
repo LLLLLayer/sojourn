@@ -168,3 +168,27 @@ input[type="checkbox"]:hover {
 .tree-root > .tree-node::after {
   display: none;
 }
+
+/* Drawer slide-in from right */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drawer-backdrop {
+  animation: backdropIn 0.2s ease-out both;
+}
+
+.drawer-panel {
+  animation: slideInRight 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
