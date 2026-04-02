@@ -1,0 +1,4 @@
+{"uuid":"d-1","parentUuid":null,"sessionId":"test-session-3","timestamp":"2026-04-01T12:00:00Z","type":"user","message":{"role":"user","content":"Hello"},"isSidechain":false}
+{"uuid":"d-2","parentUuid":"d-1","sessionId":"test-session-3","timestamp":"2026-04-01T12:00:05Z","type":"assistant","message":{"role":"assistant","content":"Streaming partial..."},"isSidechain":false}
+{"uuid":"d-2","parentUuid":"d-1","sessionId":"test-session-3","timestamp":"2026-04-01T12:00:06Z","type":"assistant","message":{"role":"assistant","content":"Streaming more..."},"isSidechain":false}
+{"uuid":"d-2","parentUuid":"d-1","sessionId":"test-session-3","timestamp":"2026-04-01T12:00:07Z","type":"assistant","message":{"role":"assistant","content":"Final complete response."},"isSidechain":false}
