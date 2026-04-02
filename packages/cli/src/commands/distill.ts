@@ -5,12 +5,8 @@ import {
   classifyMulti,
   detectFormat,
   resolveSessionPath,
-  ClaudeMdSink,
-  FileSink,
-  GitRepoSink,
-  MemorySink,
   savePending,
-  getActiveRepo,
+  commitToSink,
 } from "@sojourn/core";
 import {
   isLinear,
@@ -81,29 +77,8 @@ export async function distill(
 
   // Write to sink if specified
   if (options.sink) {
-    const outputPath = options.output ?? "./CLAUDE.md";
-    if (options.sink === "claude-md") {
-      const sink = new ClaudeMdSink(outputPath);
-      await sink.write(result);
-      console.error(`Written to ${outputPath}`);
-    } else if (options.sink === "file") {
-      const format = outputPath.endsWith(".json") ? "json" as const : "markdown" as const;
-      const sink = new FileSink(outputPath, format);
-      await sink.write(result);
-      console.error(`Written to ${outputPath}`);
-    } else if (options.sink === "git-repo") {
-      const repo = await getActiveRepo();
-      if (!repo) {
-        console.error("No active repo. Run: sojourn repo bind <name> <url>");
-        process.exit(1);
-      }
-      const sink = new GitRepoSink({ repoUrl: repo.url, repoName: repo.name });
-      await sink.write(result);
-    } else if (options.sink === "memory") {
-      const sink = new MemorySink();
-      await sink.write(result);
-      console.error("Written to Claude Code memory");
-    }
+    await commitToSink(result, { sink: options.sink, outputPath: options.output });
+    console.error(`Written to ${options.sink}`);
     return;
   }
 

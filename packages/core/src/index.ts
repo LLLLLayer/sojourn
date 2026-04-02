@@ -36,6 +36,8 @@ export {
 } from "./config.js";
 export { GitRepoSink } from "./sink/git-repo.js";
 export { MemorySink } from "./sink/memory.js";
+export { commitToSink } from "./commit.js";
+export type { CommitOptions } from "./commit.js";
 export type { BaseParser } from "./parser/base.js";
 export type { BaseAnalyzer } from "./analyzer/base.js";
 export type { BaseSink } from "./sink/base.js";

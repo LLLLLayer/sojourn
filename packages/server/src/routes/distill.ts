@@ -13,10 +13,7 @@ import {
   getPending,
   updatePendingStatus,
   discardPending,
-  ClaudeMdSink,
-  FileSink,
-  GitRepoSink,
-  getActiveRepo,
+  commitToSink,
 } from "@sojourn/core";
 import type { DistillMode, MessageTree } from "@sojourn/shared";
 
@@ -157,21 +154,7 @@ distill.post("/:id/commit", async (c) => {
       validateWritePath(outputPath);
     }
 
-    if (sinkName === "claude-md") {
-      await new ClaudeMdSink(outputPath).write(item.resultData);
-    } else if (sinkName === "file") {
-      const format = outputPath.endsWith(".json")
-        ? ("json" as const)
-        : ("markdown" as const);
-      await new FileSink(outputPath, format).write(item.resultData);
-    } else if (sinkName === "git-repo") {
-      const repo = await getActiveRepo();
-      if (!repo) return c.json({ error: "No active repo" }, 400);
-      await new GitRepoSink({
-        repoUrl: repo.url,
-        repoName: repo.name,
-      }).write(item.resultData);
-    }
+    await commitToSink(item.resultData, { sink: sinkName, outputPath });
 
     await updatePendingStatus(id, "committed", sinkName);
     return c.json({ ok: true, committedTo: sinkName });
