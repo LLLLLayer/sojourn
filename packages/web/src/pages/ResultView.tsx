@@ -1,5 +1,5 @@
 import React from "react";
-import { t } from "../i18n.js";
+
 import { ThoughtTreeView } from "../components/ThoughtTreeView.js";
 import { SOPView } from "../components/SOPView.js";
 import { WorkflowView } from "../components/WorkflowView.js";
@@ -35,7 +35,7 @@ export function ResultView({
           (e.target as HTMLElement).style.color = "var(--text-muted)";
         }}
       >
-        {t("result.backToSessions")}
+        &larr; back to sessions
       </button>
 
       <div

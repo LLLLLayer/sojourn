@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { t } from "../i18n.js";
+
 import { ThoughtTreeView } from "../components/ThoughtTreeView.js";
 import { SOPView } from "../components/SOPView.js";
 import { WorkflowView } from "../components/WorkflowView.js";
@@ -83,7 +83,7 @@ export function PendingList() {
           onMouseEnter={(e) => { (e.target as HTMLElement).style.color = "var(--text-warm)"; }}
           onMouseLeave={(e) => { (e.target as HTMLElement).style.color = "var(--text-muted)"; }}
         >
-          {t("pending.backToList")}
+          &larr; back to list
         </button>
 
         {/* Meta info */}
@@ -119,10 +119,10 @@ export function PendingList() {
         {selected.status === "pending" && (
           <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
             <ActionButton color="var(--accent-sage)" onClick={() => commit(selected.id)}>
-              {t("pending.commitTo")}
+              Commit to CLAUDE.md
             </ActionButton>
             <ActionButton color="var(--accent-terracotta)" onClick={() => discard(selected.id)}>
-              {t("pending.discard")}
+              Discard
             </ActionButton>
           </div>
         )}
@@ -171,10 +171,10 @@ export function PendingList() {
           color: "var(--text-primary)",
           letterSpacing: "-0.03em",
         }}>
-          {t("pending.title")}
+          Pending
         </h2>
         <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4, fontFamily: "var(--font-mono)" }}>
-          {t("pending.awaiting", items.filter((i) => i.status === "pending").length, items.length)}
+          {`${items.filter((i) => i.status === "pending").length} awaiting review · ${items.length} total`}
         </p>
       </div>
 
@@ -187,7 +187,7 @@ export function PendingList() {
           fontStyle: "italic",
           fontSize: 14,
         }}>
-          {t("pending.empty")}
+          No pending results
         </div>
       ) : (
         <div>

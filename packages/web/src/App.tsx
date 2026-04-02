@@ -1,28 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { SessionList } from "./pages/SessionList.js";
 import { ResultView } from "./pages/ResultView.js";
 import { PendingList } from "./pages/PendingList.js";
 import { Settings } from "./pages/Settings.js";
-import { setLanguage, t, type Language } from "./i18n.js";
 
 type Page = "sessions" | "pending" | "settings" | "result";
 
 export function App() {
   const [page, setPage] = useState<Page>("sessions");
   const [resultData, setResultData] = useState<any>(null);
-  const [, setLangTick] = useState(0);
-
-  useEffect(() => {
-    fetch("/api/config")
-      .then((r) => r.json())
-      .then((config) => {
-        if (config.language) {
-          setLanguage(config.language);
-          setLangTick((n) => n + 1);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   return (
     <div style={{
@@ -32,7 +18,6 @@ export function App() {
       gap: 12,
       background: "var(--bg-deep)",
     }}>
-      {/* Sidebar */}
       <aside
         style={{
           width: 200,
@@ -46,10 +31,7 @@ export function App() {
           overflow: "hidden",
         }}
       >
-        <div
-          className="animate-fade-in"
-          style={{ padding: "0 22px", marginBottom: 40 }}
-        >
+        <div className="animate-fade-in" style={{ padding: "0 22px", marginBottom: 40 }}>
           <h1 style={{
             fontFamily: "var(--font-display)",
             fontSize: 21,
@@ -57,7 +39,7 @@ export function App() {
             color: "var(--text-warm)",
             letterSpacing: "-0.02em",
           }}>
-            {t("app.title")}
+            Sojourn
           </h1>
           <p style={{
             fontFamily: "var(--font-display)",
@@ -66,14 +48,14 @@ export function App() {
             fontStyle: "italic",
             marginTop: 3,
           }}>
-            {t("app.subtitle")}
+            knowledge distillation
           </p>
         </div>
 
         <nav style={{ display: "flex", flexDirection: "column", gap: 2, padding: "0 8px" }}>
           {([
-            { key: "sessions" as Page, label: t("nav.sessions"), icon: "S" },
-            { key: "pending" as Page, label: t("nav.pending"), icon: "P" },
+            { key: "sessions" as Page, label: "Sessions", icon: "S" },
+            { key: "pending" as Page, label: "Pending", icon: "P" },
             { key: "settings" as Page, label: "Settings", icon: "/" },
           ]).map((item, i) => (
             <NavItem
@@ -88,22 +70,13 @@ export function App() {
         </nav>
 
         <div style={{ flex: 1 }} />
-
-        <div
-          className="animate-fade-in"
-          style={{ padding: "0 22px" }}
-        >
-          <span style={{
-            fontSize: 10,
-            color: "var(--text-muted)",
-            fontFamily: "var(--font-mono)",
-          }}>
-            {t("app.version")}
+        <div className="animate-fade-in" style={{ padding: "0 22px" }}>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+            v0.1.0
           </span>
         </div>
       </aside>
 
-      {/* Main */}
       <main style={{
         flex: 1,
         borderRadius: "var(--radius-xl)",
@@ -114,12 +87,7 @@ export function App() {
         minWidth: 0,
       }}>
         {page === "sessions" && (
-          <SessionList
-            onDistilled={(result) => {
-              setResultData(result);
-              setPage("result");
-            }}
-          />
+          <SessionList onDistilled={(result) => { setResultData(result); setPage("result"); }} />
         )}
         {page === "pending" && <PendingList />}
         {page === "settings" && <Settings />}
@@ -131,18 +99,8 @@ export function App() {
   );
 }
 
-function NavItem({
-  active,
-  onClick,
-  label,
-  shortcut,
-  delay,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  shortcut: string;
-  delay: number;
+function NavItem({ active, onClick, label, shortcut, delay }: {
+  active: boolean; onClick: () => void; label: string; shortcut: string; delay: number;
 }) {
   return (
     <button
@@ -161,24 +119,14 @@ function NavItem({
         fontSize: 13,
         fontFamily: "var(--font-mono)",
         fontWeight: active ? 500 : 300,
-        letterSpacing: "0.01em",
         transition: "all 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
         textAlign: "left",
       }}
-      onMouseEnter={(e) => {
-        if (!active) (e.currentTarget).style.background = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) => {
-        if (!active) (e.currentTarget).style.background = "transparent";
-      }}
+      onMouseEnter={(e) => { if (!active) (e.currentTarget).style.background = "var(--bg-hover)"; }}
+      onMouseLeave={(e) => { if (!active) (e.currentTarget).style.background = "transparent"; }}
     >
       {label}
-      <span style={{
-        fontSize: 10,
-        color: "var(--text-muted)",
-        fontWeight: 300,
-        opacity: 0.5,
-      }}>
+      <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 300, opacity: 0.5 }}>
         {shortcut}
       </span>
     </button>
