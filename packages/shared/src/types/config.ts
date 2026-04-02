@@ -18,6 +18,7 @@ export type Language = "zh" | "en";
 
 export interface SojournConfig {
   language: Language;
+  fontSize: number;
   defaultAnalyzer: string;
   defaultSinks: string[];
   analyzers: Record<string, AnalyzerConfig>;

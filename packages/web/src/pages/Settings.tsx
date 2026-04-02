@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
 
+function applyFontSize(size: number) {
+  const scale = size / 15; // 15 = baseline
+  document.documentElement.style.zoom = String(scale);
+}
+
+
 interface Config {
   language: string;
   defaultAnalyzer: string;
@@ -13,7 +19,7 @@ interface Config {
 export function Settings() {
   const [config, setConfig] = useState<Config | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   // Repo binding
@@ -76,7 +82,7 @@ export function Settings() {
 
   if (loading || !config) {
     return (
-      <div style={{ color: "var(--text-muted)", fontFamily: "var(--font-display)", fontStyle: "italic" }}>
+      <div style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-serif)", fontStyle: "italic" }}>
         Loading...
       </div>
     );
@@ -86,7 +92,7 @@ export function Settings() {
     <div className="animate-fade-up">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
         <h2 style={{
-          fontFamily: "var(--font-display)",
+          fontFamily: "var(--font-serif)",
           fontSize: 28,
           fontWeight: 400,
           color: "var(--text-primary)",
@@ -95,7 +101,7 @@ export function Settings() {
           Settings
         </h2>
         {saved && (
-          <span className="animate-fade-in" style={{ color: "var(--accent-sage)", fontSize: 12, fontFamily: "var(--font-mono)" }}>
+          <span className="animate-fade-in" style={{ color: "var(--green)", fontSize: 12, fontFamily: "var(--font-mono)" }}>
             Saved
           </span>
         )}
@@ -119,6 +125,29 @@ export function Settings() {
         </div>
       </Section>
 
+      {/* Font Size */}
+      <Section title="Font Size" description="Scales the entire interface.">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {([
+            { label: "S", value: 14 },
+            { label: "M", value: 15 },
+            { label: "L", value: 16 },
+            { label: "XL", value: 17 },
+          ]).map((opt) => (
+            <OptionButton
+              key={opt.value}
+              active={(config.fontSize ?? 16) === opt.value}
+              onClick={() => {
+                save({ fontSize: opt.value });
+                applyFontSize(opt.value);
+              }}
+            >
+              {opt.label}
+            </OptionButton>
+          ))}
+        </div>
+      </Section>
+
       {/* Default Analyzer */}
       <Section title="Analyzer" description="The AI backend used for distillation.">
         <div style={{ display: "flex", gap: 8 }}>
@@ -137,7 +166,7 @@ export function Settings() {
         </div>
         {config.defaultAnalyzer === "claude-api" && (
           <div style={{ marginTop: 12 }}>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4, fontFamily: "var(--font-mono)" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", display: "block", marginBottom: 4, fontFamily: "var(--font-mono)" }}>
               API Key
             </label>
             <input
@@ -194,41 +223,41 @@ export function Settings() {
                   gap: 12,
                   padding: "10px 14px",
                   borderRadius: "var(--radius-sm)",
-                  background: "var(--bg-elevated)",
+                  background: "var(--bg-subtle)",
                   border: repo.name === config.git.activeRepo
-                    ? "1px solid var(--accent-amber-dim)"
-                    : "1px solid var(--border-subtle)",
+                    ? "1px solid var(--accent-light)"
+                    : "1px solid var(--border-hairline)",
                   marginBottom: 4,
                   fontSize: 12,
                   fontFamily: "var(--font-mono)",
                 }}
               >
                 <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>{repo.name}</span>
-                <span style={{ color: "var(--text-muted)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ color: "var(--text-tertiary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {repo.url}
                 </span>
                 {repo.name === config.git.activeRepo ? (
-                  <span style={{ color: "var(--accent-amber)", fontSize: 10, letterSpacing: "0.06em" }}>ACTIVE</span>
+                  <span style={{ color: "var(--accent)", fontSize: 10, letterSpacing: "0.06em" }}>ACTIVE</span>
                 ) : (
-                  <ActionButton color="var(--accent-sky)" onClick={() => switchRepo(repo.name)}>
+                  <ActionButton color="var(--blue)" onClick={() => switchRepo(repo.name)}>
                     activate
                   </ActionButton>
                 )}
-                <ActionButton color="var(--accent-terracotta)" onClick={() => unbindRepo(repo.name)}>
+                <ActionButton color="var(--red)" onClick={() => unbindRepo(repo.name)}>
                   unbind
                 </ActionButton>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ color: "var(--text-muted)", fontSize: 12, fontStyle: "italic", fontFamily: "var(--font-display)", marginBottom: 12 }}>
+          <p style={{ color: "var(--text-tertiary)", fontSize: 12, fontStyle: "italic", fontFamily: "var(--font-serif)", marginBottom: 12 }}>
             No repositories bound.
           </p>
         )}
 
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4, fontFamily: "var(--font-mono)" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", display: "block", marginBottom: 4, fontFamily: "var(--font-mono)" }}>
               Name
             </label>
             <input
@@ -239,7 +268,7 @@ export function Settings() {
             />
           </div>
           <div style={{ flex: 2 }}>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4, fontFamily: "var(--font-mono)" }}>
+            <label style={{ fontSize: 11, color: "var(--text-tertiary)", display: "block", marginBottom: 4, fontFamily: "var(--font-mono)" }}>
               URL
             </label>
             <input
@@ -253,8 +282,8 @@ export function Settings() {
             onClick={bindRepo}
             disabled={!newRepoName || !newRepoUrl}
             style={{
-              background: newRepoName && newRepoUrl ? "var(--accent-amber)" : "var(--bg-elevated)",
-              color: newRepoName && newRepoUrl ? "#fff" : "var(--text-muted)",
+              background: newRepoName && newRepoUrl ? "var(--accent)" : "var(--bg-subtle)",
+              color: newRepoName && newRepoUrl ? "#fff" : "var(--text-tertiary)",
               border: "none",
               borderRadius: "var(--radius-sm)",
               padding: "8px 16px",
@@ -306,10 +335,10 @@ function Section({
     <div style={{
       marginBottom: 28,
       paddingBottom: 24,
-      borderBottom: "1px solid var(--border-subtle)",
+      borderBottom: "1px solid var(--border-hairline)",
     }}>
       <h3 style={{
-        fontFamily: "var(--font-display)",
+        fontFamily: "var(--font-serif)",
         fontSize: 16,
         fontWeight: 500,
         color: "var(--text-primary)",
@@ -319,7 +348,7 @@ function Section({
       </h3>
       <p style={{
         fontSize: 12,
-        color: "var(--text-muted)",
+        color: "var(--text-tertiary)",
         fontFamily: "var(--font-mono)",
         marginBottom: 14,
       }}>
@@ -343,9 +372,9 @@ function OptionButton({
     <button
       onClick={onClick}
       style={{
-        background: active ? "var(--bg-selected)" : "var(--bg-surface)",
-        color: active ? "var(--text-warm)" : "var(--text-secondary)",
-        border: active ? "1px solid var(--accent-amber-dim)" : "1px solid var(--border-subtle)",
+        background: active ? "var(--bg-active)" : "var(--bg-surface)",
+        color: active ? "var(--text-accent)" : "var(--text-secondary)",
+        border: active ? "1px solid var(--accent-light)" : "1px solid var(--border-hairline)",
         borderRadius: "var(--radius-sm)",
         padding: "6px 16px",
         fontSize: 12,
@@ -398,7 +427,7 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 12px",
   background: "var(--bg-surface)",
-  border: "1px solid var(--border-subtle)",
+  border: "1px solid var(--border-hairline)",
   borderRadius: "var(--radius-sm)",
   color: "var(--text-primary)",
   fontSize: 12,

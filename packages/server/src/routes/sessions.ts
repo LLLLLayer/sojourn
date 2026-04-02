@@ -72,25 +72,32 @@ sessions.get("/", async (c) => {
 // Get session detail
 sessions.get("/:id", async (c) => {
   const sessionId = c.req.param("id");
-  const sessionPath = await findSession(sessionId);
-  if (!sessionPath) return c.json({ error: "Session not found" }, 404);
+  try {
+    const sessionPath = await findSession(sessionId);
+    if (!sessionPath) return c.json({ error: "Session not found" }, 404);
 
-  const parser = parserRegistry.get("claude-code");
-  const tree = await parser.parse(sessionPath);
+    const parser = parserRegistry.get("claude-code");
+    const tree = await parser.parse(sessionPath);
 
-  const mainChain = getMainChain(tree).map((m) => ({
-    ...m,
-    timestamp: m.timestamp.toISOString(),
-  }));
-  const branches = getBranches(tree);
+    const mainChain = getMainChain(tree).map((m) => ({
+      ...m,
+      timestamp: m.timestamp instanceof Date && !isNaN(m.timestamp.getTime())
+        ? m.timestamp.toISOString()
+        : new Date().toISOString(),
+    }));
+    const branches = getBranches(tree);
 
-  return c.json({
-    sessionId: tree.sessionId,
-    messageCount: tree.messages.size,
-    isLinear: isLinear(tree),
-    branchCount: branches.length,
-    messages: mainChain,
-  });
+    return c.json({
+      sessionId: tree.sessionId,
+      messageCount: tree.messages.size,
+      isLinear: isLinear(tree),
+      branchCount: branches.length,
+      messages: mainChain,
+    });
+  } catch (err: any) {
+    console.error(`Session ${sessionId} error:`, err.message);
+    return c.json({ error: err.message ?? "Failed to load session" }, 500);
+  }
 });
 
 // Rename session (set alias)

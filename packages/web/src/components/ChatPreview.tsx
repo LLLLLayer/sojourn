@@ -54,7 +54,7 @@ export function ChatPreview({
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 9998,
+        zIndex: 9990,
         display: "flex",
         justifyContent: "flex-end",
         background: "rgba(0,0,0,0.18)",
@@ -82,7 +82,7 @@ export function ChatPreview({
           justifyContent: "space-between",
           alignItems: "center",
           padding: "18px 24px",
-          borderBottom: "1px solid var(--border-subtle)",
+          borderBottom: "1px solid var(--border-hairline)",
           flexShrink: 0,
         }}>
           <div style={{ minWidth: 0 }}>
@@ -96,7 +96,7 @@ export function ChatPreview({
             </div>
             <div style={{
               fontSize: 11,
-              color: "var(--text-muted)",
+              color: "var(--text-tertiary)",
               fontFamily: "var(--font-mono)",
               marginTop: 2,
               overflow: "hidden",
@@ -110,7 +110,7 @@ export function ChatPreview({
           <button
             onClick={onClose}
             style={{
-              background: "var(--bg-elevated)",
+              background: "var(--bg-subtle)",
               border: "none",
               borderRadius: "var(--radius-md)",
               width: 30,
@@ -119,13 +119,13 @@ export function ChatPreview({
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              color: "var(--text-muted)",
+              color: "var(--text-tertiary)",
               fontSize: 16,
               flexShrink: 0,
               transition: "all 0.15s ease",
             }}
-            onMouseEnter={(e) => { (e.currentTarget).style.background = "var(--bg-hover)"; }}
-            onMouseLeave={(e) => { (e.currentTarget).style.background = "var(--bg-elevated)"; }}
+            onMouseEnter={(e) => { (e.currentTarget).style.background = "var(--bg-muted)"; }}
+            onMouseLeave={(e) => { (e.currentTarget).style.background = "var(--bg-subtle)"; }}
           >
             ×
           </button>
@@ -138,15 +138,15 @@ export function ChatPreview({
           padding: "16px 20px",
         }}>
           {loading ? (
-            <div style={{ color: "var(--text-muted)", fontFamily: "var(--font-display)", fontStyle: "italic", textAlign: "center", padding: 40 }}>
+            <div style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-display)", fontStyle: "italic", textAlign: "center", padding: 40 }}>
               Loading...
             </div>
           ) : error ? (
-            <div style={{ color: "var(--accent-terracotta)", textAlign: "center", padding: 40, fontFamily: "var(--font-mono)", fontSize: 12 }}>
+            <div style={{ color: "var(--red)", textAlign: "center", padding: 40, fontFamily: "var(--font-mono)", fontSize: 12 }}>
               {error}
             </div>
           ) : data?.messages.length === 0 ? (
-            <div style={{ color: "var(--text-muted)", textAlign: "center", padding: 40 }}>
+            <div style={{ color: "var(--text-tertiary)", textAlign: "center", padding: 40 }}>
               Empty session
             </div>
           ) : (
@@ -161,7 +161,7 @@ export function ChatPreview({
   );
 }
 
-function MessageBubble({ message, index }: { message: Message; index: number }) {
+function MessageBubble({ message, index: _index }: { message: Message; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const isUser = message.role === "user";
   const isSystem = message.role === "system" || message.role === "result";
@@ -187,7 +187,7 @@ function MessageBubble({ message, index }: { message: Message; index: number }) 
       <div style={{
         fontSize: 10,
         fontFamily: "var(--font-mono)",
-        color: "var(--text-muted)",
+        color: "var(--text-tertiary)",
         marginBottom: 3,
         paddingLeft: isUser ? 0 : 2,
         paddingRight: isUser ? 2 : 0,
@@ -204,7 +204,7 @@ function MessageBubble({ message, index }: { message: Message; index: number }) 
       {/* Bubble */}
       <div style={{
         maxWidth: isUser ? "82%" : "92%",
-        background: isUser ? "var(--accent-amber)" : "var(--bg-elevated)",
+        background: isUser ? "var(--accent)" : "var(--bg-subtle)",
         color: isUser ? "#fff" : "var(--text-primary)",
         borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
         padding: content ? "10px 14px" : "6px 14px",
@@ -231,7 +231,7 @@ function MessageBubble({ message, index }: { message: Message; index: number }) 
             style={{
               background: "none",
               border: "none",
-              color: isUser ? "rgba(255,255,255,0.6)" : "var(--accent-amber)",
+              color: isUser ? "rgba(255,255,255,0.6)" : "var(--accent)",
               fontSize: 11,
               fontFamily: "var(--font-mono)",
               cursor: "pointer",
@@ -262,7 +262,7 @@ function MessageBubble({ message, index }: { message: Message; index: number }) 
               width: 8,
               height: 8,
               borderRadius: "50%",
-              background: "var(--accent-lavender)",
+              background: "var(--purple)",
               border: "2px solid var(--bg-surface)",
             }}
             title="Side branch"
@@ -295,7 +295,7 @@ function renderContent(text: string, isUser: boolean): React.ReactNode {
           lineHeight: 1.5,
         }}>
           {lang && (
-            <span style={{ fontSize: 9, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <span style={{ fontSize: 9, color: "var(--text-tertiary)", display: "block", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>
               {lang}
             </span>
           )}
@@ -320,7 +320,7 @@ function ToolBadge({ tool, isUser }: {
         borderRadius: 8,
         padding: "5px 10px",
         marginBottom: 3,
-        borderLeft: `2px solid ${isUser ? "rgba(255,255,255,0.25)" : "var(--accent-sage-dim)"}`,
+        borderLeft: `2px solid ${isUser ? "rgba(255,255,255,0.25)" : "var(--green)"}`,
         cursor: tool.output ? "pointer" : "default",
       }}
       onClick={() => tool.output && setExpanded(!expanded)}
@@ -361,7 +361,7 @@ function ToolBadge({ tool, isUser }: {
           fontSize: 10,
           fontFamily: "var(--font-mono)",
           fontWeight: 300,
-          color: isUser ? "rgba(255,255,255,0.4)" : "var(--text-muted)",
+          color: isUser ? "rgba(255,255,255,0.4)" : "var(--text-tertiary)",
           marginTop: 2,
           overflow: "hidden",
           textOverflow: "ellipsis",
