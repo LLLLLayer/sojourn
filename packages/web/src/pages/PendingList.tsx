@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { ThoughtTreeView } from "../components/ThoughtTreeView.js";
+import { SOPView } from "../components/SOPView.js";
+import { WorkflowView } from "../components/WorkflowView.js";
 
 interface PendingItem {
   id: string;
   resultType: string;
+  resultData: any;
   status: string;
   createdAt: string;
   sessionIds: string[];
+  committedTo: string | null;
 }
 
 const STATUS_STYLES: Record<string, { color: string; label: string }> = {
@@ -18,6 +23,7 @@ const STATUS_STYLES: Record<string, { color: string; label: string }> = {
 export function PendingList() {
   const [items, setItems] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const load = () => {
     fetch("/api/distill/pending")
@@ -41,6 +47,7 @@ export function PendingList() {
 
   const discard = async (id: string) => {
     await fetch(`/api/distill/${id}`, { method: "DELETE" });
+    setSelectedId(null);
     load();
   };
 
@@ -52,6 +59,106 @@ export function PendingList() {
     );
   }
 
+  const selected = items.find((i) => i.id === selectedId);
+
+  // Detail view
+  if (selected) {
+    return (
+      <div className="animate-fade-up">
+        <button
+          onClick={() => setSelectedId(null)}
+          style={{
+            background: "transparent",
+            color: "var(--text-muted)",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 12,
+            fontFamily: "var(--font-mono)",
+            marginBottom: 24,
+            padding: 0,
+            letterSpacing: "0.04em",
+            transition: "color 0.2s ease",
+          }}
+          onMouseEnter={(e) => { (e.target as HTMLElement).style.color = "var(--text-warm)"; }}
+          onMouseLeave={(e) => { (e.target as HTMLElement).style.color = "var(--text-muted)"; }}
+        >
+          &larr; back to list
+        </button>
+
+        {/* Meta info */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 20,
+          fontSize: 11,
+          fontFamily: "var(--font-mono)",
+          color: "var(--text-muted)",
+        }}>
+          <span style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: (STATUS_STYLES[selected.status] ?? STATUS_STYLES.pending).color,
+          }} />
+          <span>{selected.status}</span>
+          <span style={{ color: "var(--border-default)" }}>|</span>
+          <span>{selected.id}</span>
+          <span style={{ color: "var(--border-default)" }}>|</span>
+          <span>{selected.createdAt.slice(0, 16).replace("T", " ")}</span>
+          {selected.committedTo && (
+            <>
+              <span style={{ color: "var(--border-default)" }}>|</span>
+              <span>committed to {selected.committedTo}</span>
+            </>
+          )}
+        </div>
+
+        {/* Actions */}
+        {selected.status === "pending" && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+            <ActionButton color="var(--accent-sage)" onClick={() => commit(selected.id)}>
+              Commit to CLAUDE.md
+            </ActionButton>
+            <ActionButton color="var(--accent-terracotta)" onClick={() => discard(selected.id)}>
+              Discard
+            </ActionButton>
+          </div>
+        )}
+
+        {/* Result visualization */}
+        <div style={{
+          background: "var(--bg-surface)",
+          borderRadius: "var(--radius-lg)",
+          border: "1px solid var(--border-subtle)",
+          padding: "32px 36px",
+        }}>
+          {selected.resultData?.type === "thought_tree" && (
+            <ThoughtTreeView result={selected.resultData} />
+          )}
+          {selected.resultData?.type === "sop" && (
+            <SOPView result={selected.resultData} />
+          )}
+          {selected.resultData?.type === "workflow" && (
+            <WorkflowView result={selected.resultData} />
+          )}
+          {!["thought_tree", "sop", "workflow"].includes(selected.resultData?.type) && (
+            <pre style={{
+              fontSize: 11,
+              color: "var(--text-secondary)",
+              overflow: "auto",
+              fontFamily: "var(--font-mono)",
+              lineHeight: 1.6,
+            }}>
+              {JSON.stringify(selected.resultData, null, 2)}
+            </pre>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // List view
   return (
     <div className="animate-fade-up">
       <div style={{ marginBottom: 32 }}>
@@ -65,7 +172,7 @@ export function PendingList() {
           Pending
         </h2>
         <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4, fontFamily: "var(--font-mono)" }}>
-          {items.filter((i) => i.status === "pending").length} awaiting review
+          {items.filter((i) => i.status === "pending").length} awaiting review · {items.length} total
         </p>
       </div>
 
@@ -88,6 +195,7 @@ export function PendingList() {
               <div
                 key={item.id}
                 className={`animate-fade-up stagger-${Math.min(i + 1, 8)}`}
+                onClick={() => setSelectedId(item.id)}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "10px 90px 1fr 140px auto",
@@ -100,6 +208,7 @@ export function PendingList() {
                   marginBottom: 4,
                   fontSize: 12,
                   fontFamily: "var(--font-mono)",
+                  cursor: "pointer",
                   transition: "border-color 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
@@ -119,14 +228,16 @@ export function PendingList() {
 
                 <span style={{ color: "var(--text-secondary)" }}>{item.resultType}</span>
 
-                <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{item.id}</span>
+                <span style={{ color: "var(--text-muted)", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {getTitle(item)}
+                </span>
 
                 <span style={{ color: "var(--text-muted)", fontVariantNumeric: "tabular-nums" }}>
                   {item.createdAt.slice(0, 16).replace("T", " ")}
                 </span>
 
                 {item.status === "pending" ? (
-                  <div style={{ display: "flex", gap: 6 }}>
+                  <div style={{ display: "flex", gap: 6 }} onClick={(e) => e.stopPropagation()}>
                     <ActionButton color="var(--accent-sage)" onClick={() => commit(item.id)}>
                       commit
                     </ActionButton>
@@ -146,6 +257,15 @@ export function PendingList() {
       )}
     </div>
   );
+}
+
+function getTitle(item: PendingItem): string {
+  const data = item.resultData;
+  if (!data) return item.id;
+  if (data.type === "sop") return data.title ?? item.id;
+  if (data.type === "thought_tree") return data.rootQuestion ?? item.id;
+  if (data.type === "workflow") return data.patternName ?? item.id;
+  return item.id;
 }
 
 function ActionButton({
