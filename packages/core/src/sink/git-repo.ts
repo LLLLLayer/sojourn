@@ -6,6 +6,7 @@ import { homedir } from "os";
 import { randomUUID } from "crypto";
 import type { AnalysisResult } from "@sojourn/shared";
 import type { BaseSink } from "./base.js";
+import { formatAsMarkdown } from "../formatter.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -148,97 +149,16 @@ export class GitRepoSink implements BaseSink {
   }
 
   private formatMarkdown(result: AnalysisResult): string {
-    const lines: string[] = [];
     const date = new Date().toISOString().slice(0, 10);
-
-    // Frontmatter
-    lines.push("---");
-    lines.push(`type: ${result.type}`);
-    lines.push(`date: ${date}`);
-    lines.push(`sessions: [${result.sessionIds.join(", ")}]`);
-    lines.push(`source: sojourn`);
-    lines.push("---\n");
-
-    if (result.type === "sop") {
-      const sop = result as any;
-      lines.push(`# ${sop.title}\n`);
-      if (sop.summary) lines.push(`> ${sop.summary}\n`);
-
-      for (let i = 0; i < sop.steps.length; i++) {
-        const step = sop.steps[i];
-        lines.push(`${i + 1}. ${step.description}`);
-        if (step.precondition) {
-          lines.push(`   - **前置条件**: ${step.precondition}`);
-        }
-        if (step.failureBranch) {
-          lines.push(`   - **失败处理**: ${step.failureBranch}`);
-        }
-      }
-    } else if (result.type === "thought_tree") {
-      const tree = result as any;
-      lines.push(`# ${tree.rootQuestion}\n`);
-      if (tree.summary) lines.push(`> ${tree.summary}\n`);
-
-      // Key decisions
-      const convergences = tree.nodes.filter(
-        (n: any) => n.nodeType === "convergence" && n.reason
-      );
-      const prunings = tree.nodes.filter(
-        (n: any) => n.nodeType === "pruning" && n.reason
-      );
-
-      if (convergences.length) {
-        lines.push("## 决策\n");
-        for (const n of convergences) {
-          lines.push(`- ✅ **${n.label}**: ${n.reason}`);
-        }
-        lines.push("");
-      }
-      if (prunings.length) {
-        lines.push("## 放弃的方案\n");
-        for (const n of prunings) {
-          lines.push(`- ❌ **${n.label}**: ${n.reason}`);
-        }
-        lines.push("");
-      }
-
-      // Full tree
-      lines.push("## 完整决策树\n");
-      lines.push("```");
-      const childMap = new Map<string | null, any[]>();
-      for (const node of tree.nodes) {
-        const key = node.parentId;
-        if (!childMap.has(key)) childMap.set(key, []);
-        childMap.get(key)!.push(node);
-      }
-
-      function printNode(nodeId: string | null, indent: string): void {
-        const children = childMap.get(nodeId) ?? [];
-        for (let i = 0; i < children.length; i++) {
-          const node = children[i];
-          const isLast = i === children.length - 1;
-          const prefix = indent + (isLast ? "└─ " : "├─ ");
-          const childIndent = indent + (isLast ? "   " : "│  ");
-          lines.push(`${prefix}[${node.nodeType}] ${node.label}`);
-          printNode(node.id, childIndent);
-        }
-      }
-      printNode(null, "");
-      lines.push("```");
-    } else {
-      const wf = result as any;
-      lines.push(`# ${wf.patternName}\n`);
-      lines.push(`**触发条件**: ${wf.trigger}\n`);
-      lines.push(`**推荐做法**: ${wf.recommendation}\n`);
-      if (wf.evidence?.length) {
-        lines.push("## 证据\n");
-        for (const e of wf.evidence) {
-          lines.push(`- ${e}`);
-        }
-      }
-    }
-
-    return lines.join("\n") + "\n";
+    const frontmatter = [
+      "---",
+      `type: ${result.type}`,
+      `date: ${date}`,
+      `sessions: [${result.sessionIds.join(", ")}]`,
+      `source: sojourn`,
+      "---\n",
+    ].join("\n");
+    return frontmatter + formatAsMarkdown(result);
   }
 
   private generateSlug(result: AnalysisResult): string {
