@@ -5,7 +5,16 @@ import { randomUUID } from "crypto";
 import type { AnalysisResult, DistillMode } from "@sojourn/shared";
 import type { PendingResult, PendingStatus } from "@sojourn/shared";
 
-const PENDING_DIR = join(homedir(), ".sojourn", "pending");
+let PENDING_DIR = join(homedir(), ".sojourn", "pending");
+
+/** Override pending directory (for testing) */
+export function setPendingDir(dir: string): void {
+  PENDING_DIR = dir;
+}
+
+export function getPendingDir(): string {
+  return PENDING_DIR;
+}
 
 async function ensureDir(): Promise<void> {
   await mkdir(PENDING_DIR, { recursive: true });

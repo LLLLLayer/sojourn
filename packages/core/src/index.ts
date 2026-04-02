@@ -16,6 +16,7 @@ export {
   getPending,
   updatePendingStatus,
   discardPending,
+  setPendingDir,
 } from "./store.js";
 export {
   installHook,

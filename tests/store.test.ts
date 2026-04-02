@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { readdir, rm } from "fs/promises";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { mkdtemp, rm } from "fs/promises";
 import { join } from "path";
-import { homedir } from "os";
+import { tmpdir } from "os";
 import {
   savePending,
   listPending,
@@ -9,9 +9,21 @@ import {
   updatePendingStatus,
   discardPending,
 } from "../packages/core/src/store.js";
+import { setPendingDir } from "../packages/core/src/store.js";
 import type { SOPResult } from "../packages/shared/src/types/result.js";
 
-const PENDING_DIR = join(homedir(), ".sojourn", "pending");
+let testDir: string;
+
+beforeAll(async () => {
+  testDir = await mkdtemp(join(tmpdir(), "sojourn-test-"));
+  setPendingDir(testDir);
+});
+
+afterAll(async () => {
+  await rm(testDir, { recursive: true, force: true });
+  // Reset to default
+  setPendingDir(join(require("os").homedir(), ".sojourn", "pending"));
+});
 
 const mockResult: SOPResult = {
   type: "sop",
@@ -44,6 +56,16 @@ describe("Store", () => {
     const item = await getPending(id);
     expect(item?.status).toBe("committed");
     expect(item?.committedTo).toBe("claude-md");
+  });
+
+  it("updates resultData", async () => {
+    const id = await savePending(["test-session"], mockResult);
+    const updated = { ...mockResult, title: "Updated Title" };
+    await updatePendingStatus(id, "editing", undefined, updated);
+
+    const item = await getPending(id);
+    expect(item?.status).toBe("editing");
+    expect(item?.resultData.title).toBe("Updated Title");
   });
 
   it("discards a result", async () => {
