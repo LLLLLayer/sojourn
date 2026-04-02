@@ -37,6 +37,7 @@ export {
 } from "./config.js";
 export { GitRepoSink } from "./sink/git-repo.js";
 export { MemorySink } from "./sink/memory.js";
+export { CursorRulesSink } from "./sink/cursorrules.js";
 export { commitToSink } from "./commit.js";
 export { formatAsMarkdown, formatAsSection } from "./formatter.js";
 export type { CommitOptions } from "./commit.js";

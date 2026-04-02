@@ -3,6 +3,7 @@ import { ClaudeMdSink } from "./sink/claude-md.js";
 import { FileSink } from "./sink/file.js";
 import { GitRepoSink } from "./sink/git-repo.js";
 import { MemorySink } from "./sink/memory.js";
+import { CursorRulesSink } from "./sink/cursorrules.js";
 import { getActiveRepo } from "./config.js";
 
 export interface CommitOptions {
@@ -37,6 +38,10 @@ export async function commitToSink(
     }
     case "memory": {
       await new MemorySink().write(result);
+      break;
+    }
+    case "cursorrules": {
+      await new CursorRulesSink(outputPath !== "./CLAUDE.md" ? outputPath : ".cursorrules").write(result);
       break;
     }
     default:
