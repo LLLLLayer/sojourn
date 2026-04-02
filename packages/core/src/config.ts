@@ -9,6 +9,7 @@ const DEFAULT_CONFIG: SojournConfig = {
   language: "zh",
   fontSize: 16,
   defaultAnalyzer: "claude-code",
+  sessionAliases: {},
   defaultSinks: ["claude-md"],
   analyzers: {
     "claude-code": {},

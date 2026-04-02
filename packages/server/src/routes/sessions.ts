@@ -13,7 +13,7 @@ const sessions = new Hono();
 sessions.get("/", async (c) => {
   const claudeProjectsDir = join(homedir(), ".claude", "projects");
   const config = await loadConfig();
-  const aliases: Record<string, string> = (config as any).sessionAliases ?? {};
+  const aliases: Record<string, string> = config.sessionAliases ?? {};
 
   const result: Array<{
     sessionId: string;
@@ -106,14 +106,14 @@ sessions.put("/:id/alias", async (c) => {
   const { alias } = await c.req.json<{ alias: string }>();
   const config = await loadConfig();
 
-  if (!(config as any).sessionAliases) {
-    (config as any).sessionAliases = {};
+  if (!config.sessionAliases) {
+    config.sessionAliases = {};
   }
 
   if (alias) {
-    (config as any).sessionAliases[sessionId] = alias;
+    config.sessionAliases[sessionId] = alias;
   } else {
-    delete (config as any).sessionAliases[sessionId];
+    delete config.sessionAliases[sessionId];
   }
 
   await saveConfig(config);

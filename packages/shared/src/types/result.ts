@@ -1,7 +1,7 @@
 export type DistillMode = "thought_tree" | "sop" | "workflow" | "auto";
 
 export interface AnalysisResult {
-  type: DistillMode;
+  type: Exclude<DistillMode, "auto">;
   sessionIds: string[];
   createdAt: Date;
 }

@@ -20,6 +20,7 @@ export interface SojournConfig {
   language: Language;
   fontSize: number;
   defaultAnalyzer: string;
+  sessionAliases: Record<string, string>;
   defaultSinks: string[];
   analyzers: Record<string, AnalyzerConfig>;
   sinks: Record<string, Record<string, unknown>>;
