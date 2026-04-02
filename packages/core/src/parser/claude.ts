@@ -1,4 +1,6 @@
+import { createReadStream } from "fs";
 import { readFile } from "fs/promises";
+import { createInterface } from "readline";
 import type { Message, MessageTree, ToolUse } from "@sojourn/shared";
 import type { BaseParser } from "./base.js";
 
@@ -33,14 +35,17 @@ export class ClaudeCodeParser implements BaseParser {
   readonly supportedVersions = "*";
 
   async parse(path: string): Promise<MessageTree> {
-    const content = await readFile(path, "utf-8");
-    const lines = content.trim().split("\n").filter(Boolean);
-
-    // Parse all lines, dedup by uuid (keep last occurrence)
+    // Stream-based parsing: readline processes line-by-line without loading entire file
     const entryMap = new Map<string, RawLogEntry>();
     const entryOrder: string[] = [];
 
-    for (const line of lines) {
+    const rl = createInterface({
+      input: createReadStream(path, { encoding: "utf-8" }),
+      crlfDelay: Infinity,
+    });
+
+    for await (const line of rl) {
+      if (!line.trim()) continue;
       try {
         const entry = JSON.parse(line) as RawLogEntry;
         if (!entry.uuid) continue;

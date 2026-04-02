@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { readFile, readdir, stat, rename, mkdir } from "fs/promises";
+import { readdir, stat, rename, mkdir } from "fs/promises";
 import { join, basename } from "path";
 import { homedir } from "os";
 
@@ -168,38 +168,52 @@ sessions.delete("/project/:projectName", async (c) => {
 async function getPreview(
   filePath: string
 ): Promise<{ firstMsg: string | null; lastMsg: string | null; lineCount: number }> {
+  const CHUNK = 4096; // Read 4KB from head and tail
   try {
-    const content = await readFile(filePath, "utf-8");
-    const lines = content.trim().split("\n").filter(Boolean);
-    const lineCount = lines.length;
+    const { open: fsOpen } = await import("fs/promises");
+    const fh = await fsOpen(filePath, "r");
+    const fileStat = await fh.stat();
+    const fileSize = fileStat.size;
+
+    // Estimate line count from file size (avg ~200 bytes/line for JSONL)
+    const lineCount = Math.max(1, Math.round(fileSize / 200));
+
+    // Read head
+    const headBuf = Buffer.alloc(Math.min(CHUNK, fileSize));
+    await fh.read(headBuf, 0, headBuf.length, 0);
+    const headLines = headBuf.toString("utf-8").split("\n").filter(Boolean);
+
+    // Read tail
+    let tailLines: string[] = [];
+    if (fileSize > CHUNK) {
+      const tailBuf = Buffer.alloc(CHUNK);
+      await fh.read(tailBuf, 0, CHUNK, fileSize - CHUNK);
+      tailLines = tailBuf.toString("utf-8").split("\n").filter(Boolean);
+    }
+
+    await fh.close();
 
     let firstMsg: string | null = null;
     let lastMsg: string | null = null;
 
-    // Find first user message (skip system/tool messages)
-    for (const line of lines) {
+    // Find first user message from head
+    for (const line of headLines) {
       try {
         const entry = JSON.parse(line);
         if (!isUserMessage(entry)) continue;
         const text = extractText(entry);
-        if (text && text.length > 2) {
-          firstMsg = text.slice(0, 120);
-          break;
-        }
-      } catch { /* skip */ }
+        if (text && text.length > 2) { firstMsg = text.slice(0, 120); break; }
+      } catch { /* skip partial line */ }
     }
 
-    // Find last meaningful message
-    for (let i = lines.length - 1; i >= 0; i--) {
+    // Find last meaningful message from tail (reverse)
+    for (let i = tailLines.length - 1; i >= 0; i--) {
       try {
-        const entry = JSON.parse(lines[i]);
+        const entry = JSON.parse(tailLines[i]);
         if (!isUserOrAssistantMessage(entry)) continue;
         const text = extractText(entry);
-        if (text && text.length > 2 && text.slice(0, 120) !== firstMsg) {
-          lastMsg = text.slice(0, 120);
-          break;
-        }
-      } catch { /* skip */ }
+        if (text && text.length > 2 && text.slice(0, 120) !== firstMsg) { lastMsg = text.slice(0, 120); break; }
+      } catch { /* skip partial line */ }
     }
 
     return { firstMsg, lastMsg, lineCount };
