@@ -1,7 +1,9 @@
 import { Hono } from "hono";
-import { readFile, readdir, stat, unlink } from "fs/promises";
-import { join } from "path";
+import { readFile, readdir, stat, rename, mkdir } from "fs/promises";
+import { join, basename } from "path";
 import { homedir } from "os";
+
+const TRASH_DIR = join(homedir(), ".sojourn", "trash");
 import { parserRegistry, loadConfig, saveConfig } from "@sojourn/core";
 import { isLinear, getMainChain, getBranches } from "@sojourn/shared";
 
@@ -111,14 +113,47 @@ sessions.put("/:id/alias", async (c) => {
   return c.json({ ok: true });
 });
 
-// Delete session
+// Soft-delete session (move to trash)
 sessions.delete("/:id", async (c) => {
   const sessionId = c.req.param("id");
   const sessionPath = await findSession(sessionId);
   if (!sessionPath) return c.json({ error: "Session not found" }, 404);
 
-  await unlink(sessionPath);
-  return c.json({ ok: true });
+  await mkdir(TRASH_DIR, { recursive: true });
+  const trashPath = join(TRASH_DIR, `${Date.now()}-${basename(sessionPath)}`);
+  await rename(sessionPath, trashPath);
+  return c.json({ ok: true, trashedTo: trashPath });
+});
+
+// Soft-delete all sessions in a project
+sessions.delete("/project/:projectName", async (c) => {
+  const projectName = c.req.param("projectName");
+  const claudeProjectsDir = join(homedir(), ".claude", "projects");
+
+  try {
+    const projects = await readdir(claudeProjectsDir);
+    const match = projects.find((p) => {
+      const decoded = decodeURIComponent(p).replace(/^-/, "/");
+      return decoded === projectName;
+    });
+    if (!match) return c.json({ error: "Project not found" }, 404);
+
+    const projectDir = join(claudeProjectsDir, match);
+    const files = await readdir(projectDir);
+    const jsonlFiles = files.filter((f) => f.endsWith(".jsonl"));
+
+    await mkdir(TRASH_DIR, { recursive: true });
+    let count = 0;
+    for (const file of jsonlFiles) {
+      const trashPath = join(TRASH_DIR, `${Date.now()}-${file}`);
+      await rename(join(projectDir, file), trashPath);
+      count++;
+    }
+
+    return c.json({ ok: true, deleted: count });
+  } catch {
+    return c.json({ error: "Failed to delete project" }, 500);
+  }
 });
 
 // --- Helpers ---

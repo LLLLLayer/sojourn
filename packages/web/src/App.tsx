@@ -82,7 +82,7 @@ export function App() {
         borderRadius: "var(--radius-xl)",
         background: "var(--bg-surface)",
         boxShadow: "var(--shadow-card)",
-        padding: "36px 44px",
+        padding: "36px 40px",
         overflow: "auto",
         minWidth: 0,
       }}>
