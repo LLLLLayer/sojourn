@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { SessionList } from "./pages/SessionList.js";
 import { ResultView } from "./pages/ResultView.js";
 import { PendingList } from "./pages/PendingList.js";
+import { Settings } from "./pages/Settings.js";
 import { setLanguage, getLanguage, t, type Language } from "./i18n.js";
 
-type Page = "sessions" | "pending" | "result";
+type Page = "sessions" | "pending" | "settings" | "result";
 
 export function App() {
   const [page, setPage] = useState<Page>("sessions");
@@ -93,18 +94,20 @@ export function App() {
             shortcut="P"
             delay={2}
           />
+          <NavItem
+            active={page === "settings"}
+            onClick={() => setPage("settings")}
+            label="Settings"
+            shortcut="/"
+            delay={3}
+          />
         </nav>
 
         <div style={{ flex: 1 }} />
 
         <div
           className="animate-fade-in"
-          style={{
-            padding: "0 24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          style={{ padding: "0 24px" }}
         >
           <span style={{
             fontSize: 10,
@@ -113,30 +116,6 @@ export function App() {
           }}>
             {t("app.version")}
           </span>
-          <button
-            onClick={toggleLang}
-            style={{
-              background: "transparent",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: "var(--radius-sm)",
-              color: "var(--text-muted)",
-              fontSize: 10,
-              fontFamily: "var(--font-mono)",
-              padding: "2px 8px",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.borderColor = "var(--border-default)";
-              (e.target as HTMLElement).style.color = "var(--text-secondary)";
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.borderColor = "var(--border-subtle)";
-              (e.target as HTMLElement).style.color = "var(--text-muted)";
-            }}
-          >
-            {getLanguage() === "zh" ? "EN" : "中"}
-          </button>
         </div>
       </aside>
 
@@ -158,6 +137,7 @@ export function App() {
           />
         )}
         {page === "pending" && <PendingList />}
+        {page === "settings" && <Settings />}
         {page === "result" && resultData && (
           <ResultView
             result={resultData}
