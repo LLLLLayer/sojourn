@@ -17,6 +17,9 @@ export function PendingList() {
   const [items, setItems] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editJson, setEditJson] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
 
   const load = () => { fetch("/api/distill/pending").then((r) => r.json()).then((d) => { setItems(d); setLoading(false); }); };
   useEffect(load, []);
@@ -31,27 +34,79 @@ export function PendingList() {
 
   const selected = items.find((i) => i.id === selectedId);
 
+  const startEdit = () => {
+    setEditJson(JSON.stringify(selected?.resultData, null, 2));
+    setEditError(null);
+    setEditing(true);
+  };
+
+  const saveEdit = async () => {
+    if (!selected) return;
+    try {
+      const parsed = JSON.parse(editJson);
+      await fetch(`/api/distill/${selected.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resultData: parsed }),
+      });
+      setEditing(false);
+      setEditError(null);
+      load();
+    } catch (e: any) {
+      setEditError(e.message);
+    }
+  };
+
   if (selected) {
     return (
       <div className="anim-up">
-        <button onClick={() => setSelectedId(null)} style={{ background: "none", border: "none", color: "var(--text-tertiary)", fontSize: 12, fontFamily: "var(--font-mono)", cursor: "pointer", padding: 0, marginBottom: 20 }}>← back</button>
+        <button onClick={() => { setSelectedId(null); setEditing(false); }} style={{ background: "none", border: "none", color: "var(--text-tertiary)", fontSize: 12, fontFamily: "var(--font-mono)", cursor: "pointer", padding: 0, marginBottom: 20 }}>← back</button>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, fontSize: 11, color: "var(--text-tertiary)" }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: (STATUS[selected.status] ?? STATUS.pending).color }} />
           <span>{selected.status}</span>
           <span style={{ opacity: 0.3 }}>·</span>
           <span>{selected.createdAt.slice(0, 16).replace("T", " ")}</span>
         </div>
-        {selected.status === "pending" && (
+        {(selected.status === "pending" || selected.status === "editing") && (
           <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
             <Btn color="var(--green)" onClick={() => commit(selected.id)}>Commit to CLAUDE.md</Btn>
+            {!editing && <Btn color="var(--blue)" onClick={startEdit}>Edit</Btn>}
+            {editing && <Btn color="var(--accent)" onClick={saveEdit}>Save</Btn>}
+            {editing && <Btn color="var(--text-tertiary)" onClick={() => setEditing(false)}>Cancel</Btn>}
             <Btn color="var(--red)" onClick={() => discard(selected.id)}>Discard</Btn>
           </div>
         )}
-        <div style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-l)", border: "1px solid var(--border-hairline)", padding: "28px 32px", boxShadow: "var(--shadow-sm)" }}>
-          {selected.resultData?.type === "thought_tree" && <ThoughtTreeView result={selected.resultData} />}
-          {selected.resultData?.type === "sop" && <SOPView result={selected.resultData} />}
-          {selected.resultData?.type === "workflow" && <WorkflowView result={selected.resultData} />}
-        </div>
+
+        {editing ? (
+          <div style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-l)", border: "1px solid var(--border-hairline)", padding: "20px 24px", boxShadow: "var(--shadow-sm)" }}>
+            <div style={{ fontSize: 10, color: "var(--text-tertiary)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Edit Result JSON</div>
+            {editError && <div style={{ color: "var(--red)", fontSize: 12, marginBottom: 8, fontFamily: "var(--font-mono)" }}>{editError}</div>}
+            <textarea
+              value={editJson}
+              onChange={(e) => setEditJson(e.target.value)}
+              style={{
+                width: "100%",
+                minHeight: 400,
+                padding: 14,
+                background: "var(--bg-subtle)",
+                border: "1px solid var(--border-hairline)",
+                borderRadius: "var(--radius-s)",
+                color: "var(--text-primary)",
+                fontSize: 12,
+                fontFamily: "var(--font-mono)",
+                lineHeight: 1.6,
+                resize: "vertical",
+                outline: "none",
+              }}
+            />
+          </div>
+        ) : (
+          <div style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-l)", border: "1px solid var(--border-hairline)", padding: "28px 32px", boxShadow: "var(--shadow-sm)" }}>
+            {selected.resultData?.type === "thought_tree" && <ThoughtTreeView result={selected.resultData} />}
+            {selected.resultData?.type === "sop" && <SOPView result={selected.resultData} />}
+            {selected.resultData?.type === "workflow" && <WorkflowView result={selected.resultData} />}
+          </div>
+        )}
       </div>
     );
   }
