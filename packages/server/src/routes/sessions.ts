@@ -134,35 +134,28 @@ async function getPreview(
     let firstMsg: string | null = null;
     let lastMsg: string | null = null;
 
-    // Find first user message
+    // Find first user message (skip system/tool messages)
     for (const line of lines) {
       try {
         const entry = JSON.parse(line);
-        if (entry.type === "user" || entry.message?.role === "user") {
-          const text = extractText(entry);
-          if (text) {
-            firstMsg = text.slice(0, 120);
-            break;
-          }
+        if (!isUserMessage(entry)) continue;
+        const text = extractText(entry);
+        if (text && text.length > 2) {
+          firstMsg = text.slice(0, 120);
+          break;
         }
       } catch { /* skip */ }
     }
 
-    // Find last user or assistant message
+    // Find last meaningful message
     for (let i = lines.length - 1; i >= 0; i--) {
       try {
         const entry = JSON.parse(lines[i]);
-        if (
-          entry.type === "user" ||
-          entry.type === "assistant" ||
-          entry.message?.role === "user" ||
-          entry.message?.role === "assistant"
-        ) {
-          const text = extractText(entry);
-          if (text && text !== firstMsg?.slice(0, 120)) {
-            lastMsg = text.slice(0, 120);
-            break;
-          }
+        if (!isUserOrAssistantMessage(entry)) continue;
+        const text = extractText(entry);
+        if (text && text.length > 2 && text.slice(0, 120) !== firstMsg) {
+          lastMsg = text.slice(0, 120);
+          break;
         }
       } catch { /* skip */ }
     }
@@ -171,6 +164,22 @@ async function getPreview(
   } catch {
     return { firstMsg: null, lastMsg: null, lineCount: 0 };
   }
+}
+
+function isUserMessage(entry: any): boolean {
+  // Must be explicitly a user message, not system or tool result
+  if (entry.type === "user" && entry.message?.role === "user") return true;
+  if (entry.type === "user" && !entry.message) return false;
+  return false;
+}
+
+function isUserOrAssistantMessage(entry: any): boolean {
+  const role = entry.message?.role;
+  const type = entry.type;
+  if (type === "system" || type === "result") return false;
+  if (role === "user" || role === "assistant") return true;
+  if (type === "user" || type === "assistant") return true;
+  return false;
 }
 
 function extractText(entry: any): string | null {

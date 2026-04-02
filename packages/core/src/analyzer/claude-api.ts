@@ -117,12 +117,26 @@ export class ClaudeAnalyzer implements BaseAnalyzer {
   }
 
   private parseJSON(text: string): Record<string, unknown> {
-    // Try to extract JSON from response (may be wrapped in markdown code block)
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    const jsonStr = jsonMatch ? jsonMatch[1].trim() : text.trim();
+    // Strategy 1: extract from markdown code block
+    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      try {
+        return JSON.parse(codeBlockMatch[1].trim());
+      } catch { /* try next */ }
+    }
 
+    // Strategy 2: find first { ... } block
+    const braceStart = text.indexOf("{");
+    const braceEnd = text.lastIndexOf("}");
+    if (braceStart !== -1 && braceEnd > braceStart) {
+      try {
+        return JSON.parse(text.slice(braceStart, braceEnd + 1));
+      } catch { /* try next */ }
+    }
+
+    // Strategy 3: whole text
     try {
-      return JSON.parse(jsonStr);
+      return JSON.parse(text.trim());
     } catch {
       throw new Error(
         `Failed to parse LLM response as JSON:\n${text.slice(0, 500)}`
