@@ -4,6 +4,7 @@ import { FileSink } from "./sink/file.js";
 import { GitRepoSink } from "./sink/git-repo.js";
 import { MemorySink } from "./sink/memory.js";
 import { CursorRulesSink } from "./sink/cursorrules.js";
+import { FeishuSink } from "./sink/feishu.js";
 import { getActiveRepo } from "./config.js";
 
 export interface CommitOptions {
@@ -42,6 +43,10 @@ export async function commitToSink(
     }
     case "cursorrules": {
       await new CursorRulesSink(outputPath !== "./CLAUDE.md" ? outputPath : ".cursorrules").write(result);
+      break;
+    }
+    case "feishu": {
+      await new FeishuSink().write(result);
       break;
     }
     default:

@@ -38,6 +38,7 @@ export {
 export { GitRepoSink } from "./sink/git-repo.js";
 export { MemorySink } from "./sink/memory.js";
 export { CursorRulesSink } from "./sink/cursorrules.js";
+export { FeishuSink } from "./sink/feishu.js";
 export { commitToSink } from "./commit.js";
 export { findDuplicates } from "./dedup.js";
 export type { DedupMatch } from "./dedup.js";
