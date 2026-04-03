@@ -127,22 +127,36 @@ export async function distillSessions(
 }
 
 /**
- * Commit a pending result to a sink.
- * Uses config.defaultSinks if no sink specified.
+ * Commit a pending result to one or more sinks.
+ *
+ * - If sinkName is provided, writes to that single sink.
+ * - If not, writes to ALL configured defaultSinks (fan-out).
+ * - Falls back to "claude-md" if no defaults configured.
  */
 export async function commitPendingResult(
   id: string,
   sinkName?: string,
   outputPath?: string
-): Promise<void> {
+): Promise<string[]> {
   const item = await getPending(id);
   if (!item) throw new Error(`Pending result not found: ${id}`);
 
   const config = await loadConfig();
-  const sink = sinkName ?? config.defaultSinks?.[0] ?? "claude-md";
 
-  await commitToSink(item.resultData, { sink, outputPath });
-  await updatePendingStatus(id, "committed", sink);
+  // Determine which sinks to write to
+  const sinks: string[] = sinkName
+    ? [sinkName]
+    : (config.defaultSinks?.length ? config.defaultSinks : ["claude-md"]);
+
+  // Fan-out to all target sinks
+  const committed: string[] = [];
+  for (const sink of sinks) {
+    await commitToSink(item.resultData, { sink, outputPath });
+    committed.push(sink);
+  }
+
+  await updatePendingStatus(id, "committed", committed.join(", "));
+  return committed;
 }
 
 /**

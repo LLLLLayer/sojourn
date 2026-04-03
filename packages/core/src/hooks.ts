@@ -1,10 +1,8 @@
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
-import { parserRegistry, analyzerRegistry } from "./index.js";
-import { classify } from "./distiller/classifier.js";
-import { savePending } from "./store.js";
 import { loadConfig as loadSojournConfig } from "./config.js";
+import { distillSessions } from "./service.js";
 
 const CLAUDE_SETTINGS_PATH = join(homedir(), ".claude", "settings.json");
 
@@ -120,15 +118,9 @@ export async function autoAnalyze(sessionId: string): Promise<void> {
     throw new Error(`Session not found: ${sessionId}`);
   }
 
-  const parser = parserRegistry.get("claude-code");
-  const tree = await parser.parse(sessionPath);
-
-  const mode = classify(tree);
-  const analyzer = analyzerRegistry.get("claude-code");
-  const result = await analyzer.analyze(tree, mode);
-
-  const id = await savePending([tree.sessionId], result);
-  console.log(`Auto-analyzed session ${sessionId} → pending ${id} (${mode})`);
+  // Use service layer — single orchestration path
+  const { id, result } = await distillSessions({ sessionPaths: [sessionPath] });
+  console.log(`Auto-analyzed session ${sessionId} → pending ${id} (${result.type})`);
 }
 
 async function findSessionFile(

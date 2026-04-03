@@ -1,9 +1,8 @@
 import {
   listPending,
   getPending,
-  updatePendingStatus,
   discardPending,
-  commitToSink,
+  commitPendingResult,
 } from "@sojourn/core";
 
 export async function pendingList(): Promise<void> {
@@ -51,16 +50,9 @@ export async function pendingCommit(
   id: string,
   options: CommitOptions
 ): Promise<void> {
-  const item = await getPending(id);
-  if (!item) {
-    console.error(`Not found: ${id}`);
-    process.exit(1);
-  }
-
-  const sinkName = options.sink ?? "claude-md";
-  await commitToSink(item.resultData, { sink: sinkName, outputPath: options.output });
-  await updatePendingStatus(id, "committed", sinkName);
-  console.log(`Committed ${id} → ${sinkName}`);
+  // Uses service layer — respects config.defaultSinks when no --sink specified
+  const committed = await commitPendingResult(id, options.sink, options.output);
+  console.log(`Committed ${id} → ${committed.join(", ")}`);
 }
 
 export async function pendingDiscard(id: string): Promise<void> {

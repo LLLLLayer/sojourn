@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { readdir, stat, rename, mkdir } from "fs/promises";
 import { join, basename } from "path";
 import { homedir } from "os";
-import { parserRegistry, loadConfig, saveConfig } from "@sojourn/core";
+import { parserRegistry, loadConfig, saveConfig, detectFormat } from "@sojourn/core";
 import { isLinear, getMainChain, getBranches } from "@sojourn/shared";
 import { getPreview, findSession } from "../helpers/session-preview.js";
 
@@ -78,7 +78,8 @@ sessions.get("/:id", async (c) => {
     const sessionPath = await findSession(sessionId);
     if (!sessionPath) return c.json({ error: "Session not found" }, 404);
 
-    const parser = parserRegistry.get("claude-code");
+    const format = await detectFormat(sessionPath);
+    const parser = parserRegistry.get(format === "unknown" ? "claude-code" : format);
     const tree = await parser.parse(sessionPath);
 
     const mainChain = getMainChain(tree).map((m) => ({

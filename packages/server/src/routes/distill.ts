@@ -103,16 +103,15 @@ distill.post("/:id/commit", async (c) => {
   try {
     const id = c.req.param("id");
     const body = await c.req.json<{ sink?: string; outputPath?: string }>();
-    const outputPath = body.outputPath ?? "./CLAUDE.md";
 
-    // Validate write path for file-based sinks
-    const sinkName = body.sink ?? "claude-md";
-    if (["claude-md", "file", "cursorrules"].includes(sinkName)) {
-      await validateWritePath(outputPath);
+    // Validate write path for file-based sinks if a specific sink is requested
+    if (body.sink && ["claude-md", "file", "cursorrules"].includes(body.sink)) {
+      await validateWritePath(body.outputPath ?? "./CLAUDE.md");
     }
 
-    await commitPendingResult(id, sinkName, outputPath);
-    return c.json({ ok: true, committedTo: sinkName });
+    // Pass sink as-is (undefined = use config.defaultSinks fan-out)
+    const committed = await commitPendingResult(id, body.sink, body.outputPath);
+    return c.json({ ok: true, committedTo: committed });
   } catch (err: any) {
     return c.json({ error: err.message ?? "Commit failed" }, 500);
   }
