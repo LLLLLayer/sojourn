@@ -26,32 +26,21 @@ export function SessionList({ onDistilled }: { onDistilled: (r: any) => void }) 
     if (!selected.size) return;
     setDistilling(true);
     try {
-      const res = await fetch("/api/distill", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionPaths: [...selected] }) });
+      const res = await fetch("/api/distill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionPaths: [...selected] }),
+      });
       const data = await res.json();
-      if (data.error) { alert(data.error); setDistilling(false); return; }
+      if (data.error) { alert(data.error); return; }
 
-      // Poll for result
-      const id = data.id;
-      const poll = async () => {
-        for (let i = 0; i < 60; i++) { // max 3 min
-          await new Promise((r) => setTimeout(r, 3000));
-          const pr = await fetch(`/api/distill/${id}`);
-          const item = await pr.json();
-          if (item.status === "pending" || item.status === "committed") {
-            onDistilled(item.resultData);
-            return;
-          }
-          if (item.status === "error") {
-            alert("Distill failed: " + (item.resultData?.error ?? "Unknown error"));
-            return;
-          }
-          // still processing, continue polling
-        }
-        alert("Distill timed out");
-      };
-      await poll();
-    } catch (e: any) { alert(e.message); }
-    finally { setDistilling(false); }
+      // Server returns full result synchronously
+      onDistilled(data.result);
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setDistilling(false);
+    }
   };
 
   const saveAlias = async (sid: string) => {

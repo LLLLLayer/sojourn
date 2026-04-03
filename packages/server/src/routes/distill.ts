@@ -42,7 +42,7 @@ async function validateWritePath(p: string): Promise<void> {
 
 // --- Routes ---
 
-// Trigger distillation (async — returns immediately, polls for result)
+// Trigger distillation (synchronous — returns full result in response)
 distill.post("/", async (c) => {
   try {
     const body = await c.req.json<{
@@ -51,7 +51,6 @@ distill.post("/", async (c) => {
       analyzer?: string;
     }>();
 
-    // Validate mode
     const validModes = ["thought_tree", "sop", "workflow", "auto"];
     if (body.mode && !validModes.includes(body.mode)) {
       return c.json({ error: `Invalid mode: ${body.mode}` }, 400);
@@ -60,8 +59,6 @@ distill.post("/", async (c) => {
       return c.json({ error: "sessionPaths is required and must be non-empty" }, 400);
     }
 
-    // Run distill via service layer (async background)
-    // For now, run synchronously since service handles everything
     const { id, result, duplicates } = await distillSessions({
       sessionPaths: body.sessionPaths,
       mode: body.mode as any,
