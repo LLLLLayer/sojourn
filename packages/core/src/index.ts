@@ -1,6 +1,7 @@
 export { Registry } from "./registry.js";
 export { ClaudeCodeParser } from "./parser/claude.js";
 export { OpenCodeParser } from "./parser/opencode.js";
+export { CursorParser } from "./parser/cursor.js";
 export { ClaudeCodeAnalyzer } from "./analyzer/claude-code.js";
 export { ClaudeAnalyzer } from "./analyzer/claude-api.js";
 export { ClaudeMdSink } from "./sink/claude-md.js";

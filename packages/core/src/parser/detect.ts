@@ -1,12 +1,17 @@
 import { extname } from "path";
 
-export type DetectedFormat = "claude-code" | "opencode" | "unknown";
+export type DetectedFormat = "claude-code" | "opencode" | "cursor" | "unknown";
 
 /**
  * Auto-detect log format from file path and content.
  */
 export async function detectFormat(path: string): Promise<DetectedFormat> {
   const ext = extname(path).toLowerCase();
+
+  // Cursor workspace state
+  if (ext === ".vscdb" || path.includes("state.vscdb")) {
+    return "cursor";
+  }
 
   // SQLite files → opencode
   if (ext === ".db" || ext === ".sqlite" || ext === ".sqlite3") {
