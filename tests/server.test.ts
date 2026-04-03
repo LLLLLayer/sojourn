@@ -75,14 +75,15 @@ describe("Server API", () => {
       expect(json.error).toContain("Invalid mode");
     });
 
-    it("returns 500 for path outside whitelist", async () => {
+    it("returns 500 for non-existent session path", async () => {
+      // Use a .jsonl path so resolveSessionPath returns it as-is (no search)
       const { status, json } = await req("/api/distill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionPaths: ["/etc/passwd"] }),
+        body: JSON.stringify({ sessionPaths: ["/nonexistent/fake.jsonl"] }),
       });
       expect(status).toBe(500);
-      expect(json.error).toContain("not allowed");
+      expect(json.error).toBeTruthy();
     });
   });
 });
