@@ -1,4 +1,3 @@
-import Database from "better-sqlite3";
 import { join } from "path";
 import { homedir } from "os";
 import type { Message, MessageTree, ToolUse } from "@sojourn/shared";
@@ -32,6 +31,15 @@ export class OpenCodeParser implements BaseParser {
   readonly supportedVersions = "*";
 
   async parse(path: string): Promise<MessageTree> {
+    let Database: any;
+    try {
+      Database = (await import("better-sqlite3")).default;
+    } catch {
+      throw new Error(
+        "OpenCode parser requires better-sqlite3. Install and build it:\n" +
+        "  pnpm add better-sqlite3 && pnpm approve-builds"
+      );
+    }
     const db = new Database(path, { readonly: true });
 
     try {
@@ -105,6 +113,7 @@ export class OpenCodeParser implements BaseParser {
 
   async detectVersion(path: string): Promise<string | null> {
     try {
+      const Database = (await import("better-sqlite3")).default;
       const db = new Database(path, { readonly: true });
       const session = db
         .prepare("SELECT version FROM session LIMIT 1")

@@ -4,6 +4,7 @@ import { homedir } from "os";
 import { parserRegistry, analyzerRegistry } from "./index.js";
 import { classify } from "./distiller/classifier.js";
 import { savePending } from "./store.js";
+import { loadConfig as loadSojournConfig } from "./config.js";
 
 const CLAUDE_SETTINGS_PATH = join(homedir(), ".claude", "settings.json");
 
@@ -109,8 +110,10 @@ export async function isHookInstalled(): Promise<boolean> {
  * Auto-analyze a session (called by the hook)
  */
 export async function autoAnalyze(sessionId: string): Promise<void> {
-  // Find the session file
-  const claudeProjectsDir = join(homedir(), ".claude", "projects");
+  // Find the session file — use configured logPath
+  const config = await loadSojournConfig();
+  const claudeProjectsDir = config.agents?.["claude-code"]?.logPath
+    ?? join(homedir(), ".claude", "projects");
   const sessionPath = await findSessionFile(claudeProjectsDir, sessionId);
 
   if (!sessionPath) {

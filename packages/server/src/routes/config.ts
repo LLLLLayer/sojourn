@@ -29,20 +29,34 @@ config.get("/", async (c) => {
 
 config.put("/", async (c) => {
   const body = await c.req.json();
-  // Merge with existing config to preserve fields not sent by client
+  // loadConfig already deep-merges defaults; we reload to get full state,
+  // then deep-merge the incoming body on top so nested fields are preserved.
   const existing = await loadConfig();
-  const merged = { ...existing, ...body };
+  const merged = deepMergeObj(existing, body);
   // Don't let client overwrite apiKey with "***"
-  if (body.analyzers) {
-    for (const key of Object.keys(body.analyzers)) {
-      if (body.analyzers[key]?.apiKey === "***") {
-        merged.analyzers[key].apiKey = existing.analyzers?.[key]?.apiKey;
+  if (merged.analyzers) {
+    for (const key of Object.keys(merged.analyzers)) {
+      if (merged.analyzers[key]?.apiKey === "***") {
+        merged.analyzers[key].apiKey = (existing as any).analyzers?.[key]?.apiKey;
       }
     }
   }
   await saveConfig(merged);
   return c.json({ ok: true });
 });
+
+function deepMergeObj(base: any, override: any): any {
+  const result = { ...base };
+  for (const key of Object.keys(override)) {
+    const bv = base[key], ov = override[key];
+    if (bv && ov && typeof bv === "object" && !Array.isArray(bv) && typeof ov === "object" && !Array.isArray(ov)) {
+      result[key] = deepMergeObj(bv, ov);
+    } else if (ov !== undefined) {
+      result[key] = ov;
+    }
+  }
+  return result;
+}
 
 config.post("/bind-repo", async (c) => {
   const { name, url } = await c.req.json<{ name: string; url: string }>();

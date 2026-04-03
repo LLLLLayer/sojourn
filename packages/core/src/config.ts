@@ -30,10 +30,29 @@ const DEFAULT_CONFIG: SojournConfig = {
 export async function loadConfig(): Promise<SojournConfig> {
   try {
     const content = await readFile(CONFIG_PATH, "utf-8");
-    return { ...DEFAULT_CONFIG, ...JSON.parse(content) };
+    return deepMerge(DEFAULT_CONFIG, JSON.parse(content));
   } catch {
-    return { ...DEFAULT_CONFIG };
+    return deepMerge(DEFAULT_CONFIG, {});
   }
+}
+
+/** Deep merge: preserves nested defaults when user config only overrides some fields */
+function deepMerge<T extends Record<string, any>>(base: T, override: Partial<T>): T {
+  const result = { ...base };
+  for (const key of Object.keys(override) as (keyof T)[]) {
+    const baseVal = base[key];
+    const overVal = override[key];
+    if (
+      baseVal && overVal &&
+      typeof baseVal === "object" && !Array.isArray(baseVal) &&
+      typeof overVal === "object" && !Array.isArray(overVal)
+    ) {
+      result[key] = deepMerge(baseVal, overVal as any);
+    } else if (overVal !== undefined) {
+      result[key] = overVal as T[keyof T];
+    }
+  }
+  return result;
 }
 
 export async function saveConfig(config: SojournConfig): Promise<void> {

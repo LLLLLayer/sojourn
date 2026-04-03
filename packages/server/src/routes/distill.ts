@@ -22,9 +22,18 @@ const distill = new Hono();
 
 // --- Path safety ---
 
-const ALLOWED_READ_DIRS = [
-  join(homedir(), ".claude", "projects"),
-];
+async function getAllowedReadDirs(): Promise<string[]> {
+  const { loadConfig } = await import("@sojourn/core");
+  const config = await loadConfig();
+  const logPath = config.agents?.["claude-code"]?.logPath
+    ?? join(homedir(), ".claude", "projects");
+  // Deduplicate: always include default + configured
+  const dirs = new Set([
+    join(homedir(), ".claude", "projects"),
+    logPath,
+  ]);
+  return [...dirs];
+}
 
 const ALLOWED_WRITE_DIRS = [
   process.cwd(),
@@ -35,14 +44,18 @@ const ALLOWED_WRITE_DIRS = [
 async function validateReadPath(p: string): Promise<string> {
   const resolved = await realpath(p).catch(() => p);
   if (resolved.includes("..")) throw new Error("Invalid path: contains ..");
-  const allowed = ALLOWED_READ_DIRS.some((dir) => resolved.startsWith(dir));
-  if (!allowed) throw new Error(`Path not allowed: must be under ~/.claude/projects/`);
+  const allowedDirs = await getAllowedReadDirs();
+  const allowed = allowedDirs.some((dir) => resolved.startsWith(dir));
+  if (!allowed) throw new Error(`Path not allowed: must be under configured log path`);
   return resolved;
 }
 
-function validateWritePath(p: string): void {
+async function validateWritePath(p: string): Promise<void> {
   if (p.includes("..")) throw new Error("Invalid path: contains ..");
-  const resolved = p.startsWith("/") ? p : join(process.cwd(), p);
+  // Resolve symlinks to get real path
+  const resolved = await realpath(
+    p.startsWith("/") ? p : join(process.cwd(), p)
+  ).catch(() => p.startsWith("/") ? p : join(process.cwd(), p));
   const allowed = ALLOWED_WRITE_DIRS.some((dir) => resolved.startsWith(dir));
   if (!allowed) throw new Error(`Output path not allowed: must be under cwd or ~/.sojourn/`);
 }
@@ -175,7 +188,7 @@ distill.post("/:id/commit", async (c) => {
 
     // Validate write path for file-based sinks
     if (sinkName === "claude-md" || sinkName === "file") {
-      validateWritePath(outputPath);
+      await validateWritePath(outputPath);
     }
 
     await commitToSink(item.resultData, { sink: sinkName, outputPath });

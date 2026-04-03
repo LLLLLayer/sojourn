@@ -11,8 +11,9 @@ const sessions = new Hono();
 
 // List sessions with first/last message preview
 sessions.get("/", async (c) => {
-  const claudeProjectsDir = join(homedir(), ".claude", "projects");
   const config = await loadConfig();
+  const claudeProjectsDir = config.agents?.["claude-code"]?.logPath
+    ?? join(homedir(), ".claude", "projects");
   const aliases: Record<string, string> = config.sessionAliases ?? {};
 
   const result: Array<{

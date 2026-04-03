@@ -6,7 +6,9 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.81.0",
-    "@sojourn/shared": "workspace:*",
+    "@sojourn/shared": "workspace:*"
+  },
+  "optionalDependencies": {
     "better-sqlite3": "^12.8.0"
   },
   "scripts": {
