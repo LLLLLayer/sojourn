@@ -67,6 +67,21 @@ export function PendingList() {
           <span style={{ opacity: 0.3 }}>·</span>
           <span>{selected.createdAt.slice(0, 16).replace("T", " ")}</span>
         </div>
+        {/* Duplicate warning */}
+        {selected.resultData?._duplicates?.length > 0 && (
+          <div style={{
+            padding: "10px 14px", borderRadius: "var(--radius-s)", background: "var(--accent-bg)",
+            border: "1px solid var(--accent-light)", marginBottom: 12, fontSize: 12,
+          }}>
+            <span style={{ fontWeight: 500, color: "var(--accent)" }}>Similar results found:</span>
+            {selected.resultData._duplicates.map((d: any) => (
+              <div key={d.id} style={{ color: "var(--text-secondary)", marginTop: 4 }}>
+                · {d.title} ({Math.round(d.similarity * 100)}% match)
+              </div>
+            ))}
+          </div>
+        )}
+
         {(selected.status === "pending" || selected.status === "editing") && (
           <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
             <Btn color="var(--green)" onClick={() => commit(selected.id)}>Commit to CLAUDE.md</Btn>

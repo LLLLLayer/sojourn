@@ -14,6 +14,7 @@ import {
   updatePendingStatus,
   discardPending,
   commitToSink,
+  findDuplicates,
 } from "@sojourn/core";
 import type { DistillMode, MessageTree } from "@sojourn/shared";
 
@@ -109,7 +110,13 @@ distill.post("/", async (c) => {
             ? await analyzer.analyzeMulti(trees, mode)
             : await analyzer.analyze(trees[0], mode);
 
-        await updatePendingStatus(id, "pending", undefined, result);
+        // Check for duplicates
+        const dups = await findDuplicates(result);
+        const resultWithMeta = dups.length > 0
+          ? { ...result, _duplicates: dups }
+          : result;
+
+        await updatePendingStatus(id, "pending", undefined, resultWithMeta);
       } catch (err: any) {
         console.error(`Distill ${id} failed:`, err.message);
         await updatePendingStatus(id, "error" as any, undefined, { error: err.message });
