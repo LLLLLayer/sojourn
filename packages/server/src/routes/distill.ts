@@ -52,12 +52,24 @@ async function validateReadPath(p: string): Promise<string> {
 
 async function validateWritePath(p: string): Promise<void> {
   if (p.includes("..")) throw new Error("Invalid path: contains ..");
-  // Resolve symlinks to get real path
-  const resolved = await realpath(
-    p.startsWith("/") ? p : join(process.cwd(), p)
-  ).catch(() => p.startsWith("/") ? p : join(process.cwd(), p));
-  const allowed = ALLOWED_WRITE_DIRS.some((dir) => resolved.startsWith(dir));
-  if (!allowed) throw new Error(`Output path not allowed: must be under cwd or ~/.sojourn/`);
+  const { dirname, basename } = await import("path");
+  const abs = p.startsWith("/") ? p : join(process.cwd(), p);
+  // Resolve the *parent directory* realpath (handles symlink dirs with new filenames)
+  // If parent doesn't exist yet, resolve its parent, and so on up the chain
+  const dir = dirname(abs);
+  let resolvedDir: string;
+  try {
+    resolvedDir = await realpath(dir);
+  } catch {
+    try {
+      resolvedDir = await realpath(dirname(dir));
+    } catch {
+      resolvedDir = dir;
+    }
+  }
+  const resolved = join(resolvedDir, basename(abs));
+  const allowed = ALLOWED_WRITE_DIRS.some((d) => resolved.startsWith(d));
+  if (!allowed) throw new Error(`Output path not allowed: real path resolves outside allowed directories`);
 }
 
 // --- Routes ---

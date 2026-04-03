@@ -136,7 +136,9 @@ sessions.delete("/:id", async (c) => {
 // Soft-delete all sessions in a project
 sessions.delete("/project/:projectName", async (c) => {
   const projectName = c.req.param("projectName");
-  const claudeProjectsDir = join(homedir(), ".claude", "projects");
+  const config = await loadConfig();
+  const claudeProjectsDir = config.agents?.["claude-code"]?.logPath
+    ?? join(homedir(), ".claude", "projects");
 
   try {
     const projects = await readdir(claudeProjectsDir);
