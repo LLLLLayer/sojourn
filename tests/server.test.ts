@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
+import { join } from "path";
 import { createApp } from "../packages/server/src/app.js";
 
 const app = createApp();
+const FIXTURES = join(import.meta.dirname, "fixtures");
 
 async function req(path: string, init?: RequestInit) {
   const res = await app.request(`http://localhost${path}`, init);
@@ -74,6 +76,34 @@ describe("Server API", () => {
       expect(status).toBe(400);
       expect(json.error).toContain("Invalid mode");
     });
+
+    it("returns synchronous result (not async/polling)", async () => {
+      // Contract test: POST /api/distill returns { id, result } directly,
+      // NOT { id, status: "processing" } which would indicate async mode.
+      // This prevents accidental regression to the polling protocol.
+      //
+      // Uses real fixture — will call analyzer which may fail without Claude CLI,
+      // but we can still verify the error response shape doesn't have "processing".
+      const { status, json } = await req("/api/distill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionPaths: [join(FIXTURES, "simple-linear.jsonl")] }),
+      });
+
+      // Whether it succeeds or fails (no Claude CLI in CI), it must NOT return "processing"
+      expect(json?.status).not.toBe("processing");
+
+      if (status === 200) {
+        // Success case: verify sync contract shape
+        expect(json).toHaveProperty("id");
+        expect(json).toHaveProperty("result");
+        expect(json.result).toHaveProperty("type");
+        expect(json.result).toHaveProperty("sessionIds");
+      } else {
+        // Error case: verify it's a real error, not a deferred task
+        expect(json).toHaveProperty("error");
+      }
+    }, 130_000); // Long timeout in case Claude CLI actually runs
 
     it("returns 500 for non-existent session path", async () => {
       // Use a .jsonl path so resolveSessionPath returns it as-is (no search)
