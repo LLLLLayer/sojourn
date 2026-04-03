@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @sojourn/shared build && pnpm --filter @sojourn/core build && pnpm --filter @sojourn/web build && pnpm --filter @sojourn/server build && pnpm --filter sojourn build",
     "dev": "pnpm -r --parallel dev",
     "lint": "eslint packages/*/src/",
     "format": "prettier --write 'packages/*/src/**/*.{ts,tsx}'",

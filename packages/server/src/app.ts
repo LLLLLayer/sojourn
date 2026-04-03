@@ -42,11 +42,35 @@ export function createApp() {
   return app;
 }
 
+/**
+ * Recover stuck "processing" pending results from a previous crash.
+ * Marks anything stuck in "processing" for > 5 minutes as "error".
+ */
+async function recoverStuckTasks() {
+  try {
+    const { listPending, updatePendingStatus } = await import("@sojourn/core");
+    const items = await listPending("processing" as any);
+    const FIVE_MIN = 5 * 60 * 1000;
+    for (const item of items) {
+      const age = Date.now() - new Date(item.createdAt).getTime();
+      if (age > FIVE_MIN) {
+        await updatePendingStatus(item.id, "error" as any, undefined, {
+          error: "Task was interrupted (server restart). Please retry.",
+        });
+        console.log(`Recovered stuck task: ${item.id}`);
+      }
+    }
+  } catch {
+    // Non-critical — don't block startup
+  }
+}
+
 export function startServer(port = 7878) {
   const app = createApp();
 
-  serve({ fetch: app.fetch, port }, (info) => {
+  serve({ fetch: app.fetch, port }, async (info) => {
     console.log(`Sojourn server running at http://localhost:${info.port}`);
+    await recoverStuckTasks();
   });
 
   return app;
