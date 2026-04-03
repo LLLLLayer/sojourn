@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import type { MessageTree, AnalysisResult, DistillMode } from "@sojourn/shared";
 import type { BaseAnalyzer } from "./base.js";
-import { formatConversation, parseJSON, buildPrompt } from "./common.js";
+import { formatConversation, parseJSON, validateResult, buildPrompt } from "./common.js";
 
 export class ClaudeCodeAnalyzer implements BaseAnalyzer {
   async analyze(
@@ -10,12 +10,8 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
   ): Promise<AnalysisResult> {
     const prompt = await buildPrompt(mode, formatConversation(tree));
     const text = await this.callClaude(prompt);
-    return {
-      type: mode,
-      sessionIds: [tree.sessionId],
-      createdAt: new Date(),
-      ...parseJSON(text),
-    } as AnalysisResult;
+    const raw = parseJSON(text);
+    return validateResult(raw, mode, [tree.sessionId]);
   }
 
   async analyzeMulti(
@@ -27,12 +23,8 @@ export class ClaudeCodeAnalyzer implements BaseAnalyzer {
       .join("\n\n");
     const prompt = await buildPrompt(mode, conversation);
     const text = await this.callClaude(prompt);
-    return {
-      type: mode,
-      sessionIds: trees.map((t) => t.sessionId),
-      createdAt: new Date(),
-      ...parseJSON(text),
-    } as AnalysisResult;
+    const raw = parseJSON(text);
+    return validateResult(raw, mode, trees.map((t) => t.sessionId));
   }
 
   private callClaude(prompt: string): Promise<string> {

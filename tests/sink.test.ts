@@ -19,7 +19,7 @@ afterAll(async () => {
 const sopResult: SOPResult = {
   type: "sop",
   sessionIds: ["s1"],
-  createdAt: new Date(),
+  createdAt: new Date().toISOString(),
   title: "Test SOP",
   summary: "A test procedure",
   steps: [
@@ -31,7 +31,7 @@ const sopResult: SOPResult = {
 const treeResult: ThoughtTreeResult = {
   type: "thought_tree",
   sessionIds: ["s2"],
-  createdAt: new Date(),
+  createdAt: new Date().toISOString(),
   rootQuestion: "How to fix the bug?",
   summary: "Fixed by removing cache",
   nodes: [

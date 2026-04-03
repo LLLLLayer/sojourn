@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { MessageTree, AnalysisResult, DistillMode } from "@sojourn/shared";
 import type { BaseAnalyzer } from "./base.js";
-import { formatConversation, parseJSON, buildPrompt } from "./common.js";
+import { formatConversation, parseJSON, validateResult, buildPrompt } from "./common.js";
 
 interface ClaudeAnalyzerOptions {
   apiKey?: string;
@@ -25,12 +25,8 @@ export class ClaudeAnalyzer implements BaseAnalyzer {
   ): Promise<AnalysisResult> {
     const prompt = await buildPrompt(mode, formatConversation(tree));
     const text = await this.callAPI(prompt);
-    return {
-      type: mode,
-      sessionIds: [tree.sessionId],
-      createdAt: new Date(),
-      ...parseJSON(text),
-    } as AnalysisResult;
+    const raw = parseJSON(text);
+    return validateResult(raw, mode, [tree.sessionId]);
   }
 
   async analyzeMulti(
@@ -42,12 +38,8 @@ export class ClaudeAnalyzer implements BaseAnalyzer {
       .join("\n\n");
     const prompt = await buildPrompt(mode, conversation);
     const text = await this.callAPI(prompt);
-    return {
-      type: mode,
-      sessionIds: trees.map((t) => t.sessionId),
-      createdAt: new Date(),
-      ...parseJSON(text),
-    } as AnalysisResult;
+    const raw = parseJSON(text);
+    return validateResult(raw, mode, trees.map((t) => t.sessionId));
   }
 
   private async callAPI(prompt: string): Promise<string> {

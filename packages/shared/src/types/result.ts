@@ -1,9 +1,9 @@
 export type DistillMode = "thought_tree" | "sop" | "workflow" | "auto";
 
-export interface AnalysisResult {
-  type: Exclude<DistillMode, "auto">;
+// Base fields shared by all result types
+interface ResultBase {
   sessionIds: string[];
-  createdAt: Date;
+  createdAt: string; // ISO 8601 string (not Date — consistent across serialize/deserialize)
 }
 
 // ── Thought Tree (aligned with docs/internal/thought-tree-spec.md) ──
@@ -36,7 +36,7 @@ export interface TreeNode {
   confidence?: number;
 }
 
-export interface ThoughtTreeResult extends AnalysisResult {
+export interface ThoughtTreeResult extends ResultBase {
   type: "thought_tree";
   rootQuestion: string;
   nodes: TreeNode[];
@@ -51,7 +51,7 @@ export interface Step {
   precondition?: string;
 }
 
-export interface SOPResult extends AnalysisResult {
+export interface SOPResult extends ResultBase {
   type: "sop";
   title: string;
   steps: Step[];
@@ -60,10 +60,17 @@ export interface SOPResult extends AnalysisResult {
 
 // ── Workflow Pattern ──
 
-export interface WorkflowResult extends AnalysisResult {
+export interface WorkflowResult extends ResultBase {
   type: "workflow";
   patternName: string;
   trigger: string;
   recommendation: string;
   evidence: string[];
 }
+
+// ── Discriminated Union ──
+
+export type DistillResult = ThoughtTreeResult | SOPResult | WorkflowResult;
+
+// Backward compat alias
+export type AnalysisResult = DistillResult;

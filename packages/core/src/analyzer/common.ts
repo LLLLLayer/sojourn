@@ -1,4 +1,4 @@
-import type { MessageTree, DistillMode } from "@sojourn/shared";
+import type { MessageTree, DistillMode, DistillResult } from "@sojourn/shared";
 import { getMainChain } from "@sojourn/shared";
 import { renderPrompt } from "../prompts/loader.js";
 import { loadConfig } from "../config.js";
@@ -48,6 +48,64 @@ export function parseJSON(text: string): Record<string, unknown> {
   // Strategy 3: whole text
   try { return JSON.parse(text.trim()); }
   catch { throw new Error(`Failed to parse response as JSON:\n${text.slice(0, 500)}`); }
+}
+
+/**
+ * Validate and normalize LLM output into a proper DistillResult.
+ * Fills in missing required fields with defaults instead of silently passing bad data.
+ */
+export function validateResult(
+  raw: Record<string, unknown>,
+  mode: Exclude<DistillMode, "auto">,
+  sessionIds: string[]
+): DistillResult {
+  const base = {
+    sessionIds,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (mode === "sop") {
+    return {
+      ...base,
+      type: "sop",
+      title: typeof raw.title === "string" ? raw.title : "Untitled SOP",
+      steps: Array.isArray(raw.steps) ? raw.steps.map((s: any) => ({
+        description: typeof s?.description === "string" ? s.description : String(s ?? ""),
+        failureBranch: s?.failureBranch,
+        precondition: s?.precondition,
+      })) : [],
+      summary: typeof raw.summary === "string" ? raw.summary : undefined,
+    };
+  }
+
+  if (mode === "thought_tree") {
+    return {
+      ...base,
+      type: "thought_tree",
+      rootQuestion: typeof raw.rootQuestion === "string" ? raw.rootQuestion : "Unknown",
+      nodes: Array.isArray(raw.nodes) ? raw.nodes.map((n: any) => ({
+        id: n?.id ?? String(Math.random()),
+        parentId: n?.parentId ?? null,
+        nodeType: n?.nodeType ?? "question",
+        label: typeof n?.label === "string" ? n.label : "",
+        reason: n?.reason,
+        messageIds: Array.isArray(n?.messageIds) ? n.messageIds : [],
+        edgeType: n?.edgeType,
+        confidence: typeof n?.confidence === "number" ? n.confidence : undefined,
+      })) : [],
+      summary: typeof raw.summary === "string" ? raw.summary : undefined,
+    };
+  }
+
+  // workflow
+  return {
+    ...base,
+    type: "workflow",
+    patternName: typeof raw.patternName === "string" ? raw.patternName : "Unknown Pattern",
+    trigger: typeof raw.trigger === "string" ? raw.trigger : "",
+    recommendation: typeof raw.recommendation === "string" ? raw.recommendation : "",
+    evidence: Array.isArray(raw.evidence) ? raw.evidence.map(String) : [],
+  };
 }
 
 export async function getLangInstruction(): Promise<string> {

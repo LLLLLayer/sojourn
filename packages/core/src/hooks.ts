@@ -99,7 +99,7 @@ export async function isHookInstalled(): Promise<boolean> {
   if (!settings.hooks) return false;
 
   for (const hooks of Object.values(settings.hooks)) {
-    if (hooks.some((h) => h.command.includes("sojourn"))) {
+    if (hooks.some((h) => h.command?.includes("sojourn"))) {
       return true;
     }
   }

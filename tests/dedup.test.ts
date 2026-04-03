@@ -21,13 +21,13 @@ afterAll(async () => {
 describe("findDuplicates", () => {
   it("finds no duplicates for new content", async () => {
     const result: SOPResult = {
-      type: "sop", sessionIds: ["s1"], createdAt: new Date(),
+      type: "sop", sessionIds: ["s1"], createdAt: new Date().toISOString(),
       title: "Unique SOP", steps: [{ description: "Do something unique" }],
     };
     await savePending(["s1"], result);
 
     const newResult: SOPResult = {
-      type: "sop", sessionIds: ["s2"], createdAt: new Date(),
+      type: "sop", sessionIds: ["s2"], createdAt: new Date().toISOString(),
       title: "Completely different", steps: [{ description: "Totally unrelated task" }],
     };
     const dups = await findDuplicates(newResult);
@@ -36,7 +36,7 @@ describe("findDuplicates", () => {
 
   it("detects similar results", async () => {
     const existing: SOPResult = {
-      type: "sop", sessionIds: ["s3"], createdAt: new Date(),
+      type: "sop", sessionIds: ["s3"], createdAt: new Date().toISOString(),
       title: "Configure SSH for GitHub", steps: [
         { description: "Generate SSH key" },
         { description: "Add key to GitHub settings" },
@@ -46,7 +46,7 @@ describe("findDuplicates", () => {
     await savePending(["s3"], existing);
 
     const similar: SOPResult = {
-      type: "sop", sessionIds: ["s4"], createdAt: new Date(),
+      type: "sop", sessionIds: ["s4"], createdAt: new Date().toISOString(),
       title: "Setup SSH key for GitHub", steps: [
         { description: "Generate new SSH key pair" },
         { description: "Add public key to GitHub" },

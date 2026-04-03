@@ -28,7 +28,7 @@ afterAll(async () => {
 const mockResult: SOPResult = {
   type: "sop",
   sessionIds: ["test-session"],
-  createdAt: new Date(),
+  createdAt: new Date().toISOString(),
   title: "Test SOP",
   steps: [{ description: "Step 1" }],
 };
